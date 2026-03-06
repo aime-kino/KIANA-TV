@@ -2,6 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KIANA TV — Toutes Catégories & Réglages</title>
 
 <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet">
@@ -9,8 +10,7 @@
 
 <style>
 body, html {
-  margin:0;
-  padding:0;
+  margin:0; padding:0;
   font-family: Arial, sans-serif;
   background: linear-gradient(120deg,#ff9a9e,#fad0c4,#fbc2eb);
   background-size:400% 400%;
@@ -93,6 +93,7 @@ header {
   padding:10px;
   border-radius:8px 0 0 8px;
   border:none;
+  font-size:16px;
 }
 
 .search-box button {
@@ -101,7 +102,7 @@ header {
   border:none;
   border-radius:0 8px 8px 0;
   cursor:pointer;
-  font-size:18px;
+  font-size:16px;
 }
 
 .category-btn {
@@ -162,17 +163,37 @@ header {
   height:100%;
   box-shadow:0 0 30px rgba(0,0,0,0.7);
 }
+
+@media (max-width: 900px) {
+  .container {
+    flex-direction: column;
+    height: auto;
+  }
+  .sidebar {
+    width: 100%;
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 10px;
+  }
+  .player {
+    width: 100%;
+    height: auto;
+  }
+  video {
+    width: 100% !important;
+    height: auto !important;
+  }
+  .category-btn { font-size: 16px; padding: 10px; }
+  .channel img { width:60px; height:40px; }
+}
 </style>
 </head>
 
 <body>
-
 <header>
 📺 KIANA TV
-
 <div class="menu-container">
 <div class="menu-btn" onclick="toggleDropdown()">☰ Paramètres</div>
-
 <div class="dropdown-menu" id="dropdownMenu">
 <div onclick="setLanguage('fr')">Français</div>
 <div onclick="setLanguage('en')">English</div>
@@ -183,111 +204,56 @@ header {
 <div onclick="setLanguage('zh')">中文</div>
 <div onclick="setLanguage('ja')">日本語</div>
 </div>
-
 </div>
 </header>
 
 <div class="container">
-
 <div class="sidebar" id="sidebar">
-
 <div class="search-box">
 <input type="text" id="search" placeholder="Rechercher une chaîne..." onkeydown="if(event.key==='Enter'){searchNow();}">
 <button onclick="searchNow()">🔍</button>
 </div>
-
 <div id="searchResults"></div>
-
 </div>
 
 <div class="player">
-<video id="player" class="video-js vjs-default-skin" controls autoplay width="900"></video>
+<video id="player" class="video-js vjs-default-skin" controls autoplay></video>
 </div>
-
 </div>
 
 <script src="https://vjs.zencdn.net/7.20.3/video.min.js"></script>
 <script src="https://unpkg.com/videojs-http-source-selector@1.1.5/dist/videojs-http-source-selector.min.js"></script>
 
 <script>
-
 var player = videojs('player',{autoplay:false,fluid:true});
 player.httpSourceSelector();
+player.ready(function(){player.volume(1);});
 
-player.ready(function(){
-player.volume(1);
-});
+var lang='fr';
 
 function toggleDropdown(){
 const d=document.getElementById('dropdownMenu');
 d.style.display=(d.style.display==='block'?'none':'block');
 }
 
-var lang='fr';
+function setLanguage(l){ lang=l; }
 
-function setLanguage(l){
-lang=l;
-updateTextLang();
-}
-
-function updateTextLang(){
-
-const inp=document.getElementById('search');
-
-const map={
-fr:"Rechercher une chaîne...",
-en:"Search a channel...",
-es:"Buscar canal...",
-ar:"ابحث عن قناة...",
-de:"Kanal suchen...",
-it:"Cerca canale...",
-zh:"搜索频道...",
-ja:"チャンネルを検索..."
-};
-
-inp.placeholder=map[lang]||map['en'];
-
-}
-
-/* FAVORIS */
-
-function getFavs(){
-return JSON.parse(localStorage.getItem("kianaFavs")||"[]");
-}
-
-function saveFavs(f){
-localStorage.setItem("kianaFavs",JSON.stringify(f));
-}
+function getFavs(){ return JSON.parse(localStorage.getItem("kianaFavs")||"[]"); }
+function saveFavs(f){ localStorage.setItem("kianaFavs",JSON.stringify(f)); }
 
 function toggleFavorite(ch,el){
-
 event.stopPropagation();
-
 let favs=getFavs();
 let index=favs.findIndex(x=>x.url===ch.url);
-
-if(index>-1){
-favs.splice(index,1);
-el.style.color="white";
-}else{
-favs.push(ch);
-el.style.color="red";
-}
-
+if(index>-1){ favs.splice(index,1); el.style.color="white"; }
+else { favs.push(ch); el.style.color="red"; }
 saveFavs(favs);
-
 }
-
-/* CHAINES CACHE */
 
 let allChannels=[];
 
-/* CATEGORIES */
-
 const categories=[
-
 {name:"⭐ Préférées",static:true},
-
 {name:"Toutes les chaînes",m3u:[
 "https://iptv-org.github.io/iptv/regions/afr.m3u",
 "https://iptv-org.github.io/iptv/countries/fr.m3u",
@@ -296,180 +262,60 @@ const categories=[
 "https://iptv-org.github.io/iptv/categories/music.m3u",
 "https://iptv-org.github.io/iptv/categories/movies.m3u"
 ]},
-
-{name:"Afrique",m3u:[
-"https://iptv-org.github.io/iptv/regions/afr.m3u"
-]},
-
+{name:"Afrique",m3u:["https://iptv-org.github.io/iptv/regions/afr.m3u"]},
 {name:"International",m3u:[
 "https://iptv-org.github.io/iptv/categories/news.m3u",
 "https://iptv-org.github.io/iptv/categories/music.m3u",
 "https://iptv-org.github.io/iptv/categories/movies.m3u"
 ]},
-
-{name:"Infos",m3u:[
-"https://iptv-org.github.io/iptv/categories/news.m3u"
-]},
-
-{name:"Sports",m3u:[
-"https://iptv-org.github.io/iptv/categories/sports.m3u"
-]},
-
-{name:"Musique",m3u:[
-"https://iptv-org.github.io/iptv/categories/music.m3u"
-]},
-
-{name:"Films",m3u:[
-"https://iptv-org.github.io/iptv/categories/movies.m3u"
-]},
-
-{name:"Séries",m3u:[
-"https://iptv-org.github.io/iptv/categories/movies.m3u"
-]}
-
+{name:"Infos",m3u:["https://iptv-org.github.io/iptv/categories/news.m3u"]},
+{name:"Sports",m3u:["https://iptv-org.github.io/iptv/categories/sports.m3u"]},
+{name:"Musique",m3u:["https://iptv-org.github.io/iptv/categories/music.m3u"]},
+{name:"Films",m3u:["https://iptv-org.github.io/iptv/categories/movies.m3u"]},
+{name:"Séries",m3u:["https://iptv-org.github.io/iptv/categories/movies.m3u"]}
 ];
 
 function buildSidebar(cats){
-
 const sb=document.getElementById('sidebar');
-
 cats.forEach(cat=>{
-
-const btn=document.createElement('div');
-btn.className='category-btn';
-btn.innerText=cat.name;
-sb.appendChild(btn);
-
-const list=document.createElement('div');
-list.className='channel-list';
-sb.appendChild(list);
-
+const btn=document.createElement('div'); btn.className='category-btn'; btn.innerText=cat.name; sb.appendChild(btn);
+const list=document.createElement('div'); list.className='channel-list'; sb.appendChild(list);
 let vis=false;
-
 btn.onclick=async()=>{
-
-if(vis){
-list.style.display='none';
-vis=false;
-return;
-}
-
-list.innerHTML='';
-list.style.display='flex';
-
-const channels = cat.static ? getFavs() : await loadM3U(cat.m3u);
-
-channels.forEach(ch=>{
-createChannel(list,ch);
-});
-
-if(channels.length===0)
-list.innerHTML="Aucune chaîne disponible";
-
+if(vis){ list.style.display='none'; vis=false; return;}
+list.innerHTML=''; list.style.display='flex';
+const channels=cat.static ? getFavs() : await loadM3U(cat.m3u);
+channels.forEach(ch=>{ createChannel(list,ch); });
+if(channels.length===0) list.innerHTML="Aucune chaîne disponible";
 vis=true;
-
 };
-
 });
-
 }
 
 function createChannel(list,ch){
-
-let favs=getFavs();
-let isFav=favs.find(x=>x.url===ch.url);
-
-const div=document.createElement('div');
-div.className='channel';
-
-div.innerHTML=`
-<img src="${ch.logo}">
-<strong>${ch.name}</strong>
-<span class="fav-btn" style="color:${isFav?'red':'white'}">❤</span>
-`;
-
-div.onclick=()=>{
-player.src({src:ch.url,type:'application/x-mpegURL'});
-player.play();
-};
-
-div.querySelector(".fav-btn").onclick=(e)=>{
-toggleFavorite(ch,e.target);
-};
-
+let favs=getFavs(); let isFav=favs.find(x=>x.url===ch.url);
+const div=document.createElement('div'); div.className='channel';
+div.innerHTML=`<img src="${ch.logo}"><strong>${ch.name}</strong><span class="fav-btn" style="color:${isFav?'red':'white'}">❤</span>`;
+div.onclick=()=>{ player.src({src:ch.url,type:'application/x-mpegURL'}); player.play(); };
+div.querySelector(".fav-btn").onclick=(e)=>{ toggleFavorite(ch,e.target); };
 list.appendChild(div);
-
 }
-
-/* LOAD M3U */
 
 async function loadM3U(urls){
-
-const arr=[];
-
-for(let u of urls){
-
-try{
-
-const r=await fetch(u);
-const t=await r.text();
-const lines=t.split('\n');
-
-for(let i=0;i<lines.length;i++){
-
-if(lines[i].startsWith('#EXTINF:')){
-
-const nm=lines[i].split(',')[1]||"Unknown";
-
-const lgm=lines[i].match(/tvg-logo="([^"]+)"/);
-const lg=lgm?lgm[1]:"https://via.placeholder.com/80x50?text=TV";
-
-const url=lines[i+1];
-
-if(url && !url.startsWith('#')){
-const ch={name:nm,logo:lg,url};
-arr.push(ch);
-allChannels.push(ch);
-}
-
-}
-
-}
-
-}catch{}
-
-}
-
+const arr=[]; for(let u of urls){ try{ const r=await fetch(u); const t=await r.text(); const lines=t.split('\n'); for(let i=0;i<lines.length;i++){ if(lines[i].startsWith('#EXTINF:')){ const nm=lines[i].split(',')[1]||"Unknown"; const lgm=lines[i].match(/tvg-logo="([^"]+)"/); const lg=lgm?lgm[1]:"https://via.placeholder.com/80x50?text=TV"; const url=lines[i+1]; if(url && !url.startsWith('#')){ const ch={name:nm,logo:lg,url}; arr.push(ch); allChannels.push(ch); }}}}catch{}}
 return arr;
-
 }
 
 buildSidebar(categories);
 
-/* SEARCH */
-
 function searchNow(){
-
 const q=document.getElementById('search').value.toLowerCase();
 const res=document.getElementById('searchResults');
-
 res.innerHTML="";
-
 let results=allChannels.filter(c=>c.name.toLowerCase().includes(q));
-
-if(results.length===0){
-
-res.innerHTML="<div style='padding:10px'>Aucune chaîne correspondante</div>";
-return;
-
+if(results.length===0){ res.innerHTML="<div style='padding:10px'>Aucune chaîne correspondante</div>"; return; }
+results.forEach(ch=>{ createChannel(res,ch); });
 }
-
-results.forEach(ch=>{
-createChannel(res,ch);
-});
-
-}
-
 </script>
 
 </body>

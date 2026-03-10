@@ -4,208 +4,53 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="playsinline" content="true">                                                           
-<title>KIANA TV — Toutes Catégories & Réglages</title>
+<meta name="playsinline" content="true">
+
+<!-- Vérification Google Search Console -->
+<meta name="google-site-verification" content="XXXXXXXXXXXX">
+
+<!-- SEO -->
+<title>KIANA TV — Streaming TV Gratuit</title>
+<meta name="description" content="Regardez gratuitement les chaînes TV en ligne sur KIANA TV. Sports, films, séries, musique et infos disponibles en streaming.">
+<meta name="keywords" content="KIANA TV, streaming TV, chaînes TV, gratuit, en ligne">
 
 <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet">
 <link href="https://unpkg.com/videojs-http-source-selector@1.1.5/dist/videojs-http-source-selector.css" rel="stylesheet">
 
 <style>
-
-html{
-font-size:clamp(12px,1.1vw,18px);
-}
-
-body, html {
-  margin:0; padding:0;
-  font-family: Arial, sans-serif;
-  background: linear-gradient(120deg,#ff9a9e,#fad0c4,#fbc2eb);
-  background-size:400% 400%;
-  animation:gradientBG 15s ease infinite;
-  color:white;
-  height:100vh;
-  overflow:hidden;
-}
-
-@keyframes gradientBG {
-0%{background-position:0% 50%;}
-50%{background-position:100% 50%;}
-100%{background-position:0% 50%;}
-}
-
-header {
-  background:rgba(0,0,0,0.5);
-  padding:20px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  font-size:clamp(18px,2vw,28px);
-  font-weight:bold;
-  text-shadow:2px 2px 5px #000;
-  position:relative;
-  z-index:1000;
-}
-
+html{font-size:clamp(12px,1.1vw,18px);}
+body, html {margin:0; padding:0; font-family: Arial, sans-serif; background: linear-gradient(120deg,#ff9a9e,#fad0c4,#fbc2eb); background-size:400% 400%; animation:gradientBG 15s ease infinite; color:white; height:100vh; overflow:hidden;}
+@keyframes gradientBG {0%{background-position:0% 50%;} 50%{background-position:100% 50%;} 100%{background-position:0% 50%;}}
+header {background:rgba(0,0,0,0.5); padding:20px; display:flex; justify-content:space-between; align-items:center; font-size:clamp(18px,2vw,28px); font-weight:bold; text-shadow:2px 2px 5px #000; position:relative; z-index:1000;}
 .menu-container { position:relative; }
-
-.menu-btn {
-  cursor:pointer;
-  font-size:clamp(16px,1.8vw,24px);
-  padding:5px;
-}
-
-.dropdown-menu {
-  display:none;
-  position:absolute;
-  right:0;
-  top:40px;
-  background:rgba(0,0,0,0.95);
-  border-radius:8px;
-  padding:8px;
-  width:220px;
-  max-height:350px;
-  overflow-y:auto;
-  z-index:2000;
-}
-
-.dropdown-menu div {
-  padding:10px;
-  cursor:pointer;
-  border-bottom:1px solid #444;
-  font-size:clamp(12px,1.2vw,16px);
-}
-
+.menu-btn { cursor:pointer; font-size:clamp(16px,1.8vw,24px); padding:5px; }
+.dropdown-menu { display:none; position:absolute; right:0; top:40px; background:rgba(0,0,0,0.95); border-radius:8px; padding:8px; width:220px; max-height:350px; overflow-y:auto; z-index:2000; }
+.dropdown-menu div { padding:10px; cursor:pointer; border-bottom:1px solid #444; font-size:clamp(12px,1.2vw,16px); }
 .dropdown-menu div:last-child{border:none;}
 .dropdown-menu div:hover{background:#333;}
-
-.container {
-  display:flex;
-  height:calc(100vh - 80px);
-}
-
-.sidebar {
-  width:300px;
-  max-width:100%;
-  background:rgba(0,0,0,0.4);
-  padding:20px;
-  border-radius:15px;
-  overflow-y:auto;
-}
-
-.search-box {
-  display:flex;
-  margin-bottom:15px;
-}
-
-.search-box input {
-  flex:1;
-  padding:10px;
-  border-radius:8px 0 0 8px;
-  border:none;
-  font-size:clamp(12px,1.2vw,16px);
-  min-width:0;
-}
-
-.search-box button {
-  padding:10px;
-  background:#1a2c47;
-  border:none;
-  border-radius:0 8px 8px 0;
-  cursor:pointer;
-  font-size:clamp(12px,1.2vw,16px);
-  white-space:nowrap;
-}
-
-.category-btn {
-  background:rgba(255,255,255,0.1);
-  padding:12px;
-  margin:8px 0;
-  border-radius:8px;
-  cursor:pointer;
-  font-weight:bold;
-  font-size:clamp(13px,1.3vw,17px);
-  transition:0.3s;
-}
-
-.category-btn:hover{
-  background:rgba(255,255,255,0.3);
-  transform:scale(1.03);
-}
-
-.channel-list{
-  display:none;
-  flex-direction:column;
-  margin-bottom:20px;
-}
-
-.channel{
-  display:flex;
-  align-items:center;
-  background:rgba(255,255,255,0.15);
-  margin:5px 0;
-  padding:10px;
-  border-radius:8px;
-  cursor:pointer;
-  transition:0.3s;
-  font-size:clamp(12px,1.2vw,16px);
-}
-
-.channel strong{
-flex:1;
-overflow:hidden;
-text-overflow:ellipsis;
-white-space:nowrap;
-}
-
-.channel img{
-  width:80px;
-  height:50px;
-  border-radius:6px;
-  margin-right:10px;
-}
-
-.channel:hover{
-  background:rgba(255,255,255,0.4);
-  transform:scale(1.05);
-}
-
-.fav-btn{
-  margin-left:auto;
-  font-size:clamp(16px,1.5vw,22px);
-  cursor:pointer;
-}
-
-.player{
-  flex:1;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100%;
-  box-shadow:0 0 30px rgba(0,0,0,0.7);
-}
-
+.container { display:flex; height:calc(100vh - 80px); }
+.sidebar { width:300px; max-width:100%; background:rgba(0,0,0,0.4); padding:20px; border-radius:15px; overflow-y:auto; }
+.search-box { display:flex; margin-bottom:15px; }
+.search-box input { flex:1; padding:10px; border-radius:8px 0 0 8px; border:none; font-size:clamp(12px,1.2vw,16px); min-width:0; }
+.search-box button { padding:10px; background:#1a2c47; border:none; border-radius:0 8px 8px 0; cursor:pointer; font-size:clamp(12px,1.2vw,16px); white-space:nowrap; }
+.category-btn { background:rgba(255,255,255,0.1); padding:12px; margin:8px 0; border-radius:8px; cursor:pointer; font-weight:bold; font-size:clamp(13px,1.3vw,17px); transition:0.3s; }
+.category-btn:hover{ background:rgba(255,255,255,0.3); transform:scale(1.03); }
+.channel-list{ display:none; flex-direction:column; margin-bottom:20px; }
+.channel{ display:flex; align-items:center; background:rgba(255,255,255,0.15); margin:5px 0; padding:10px; border-radius:8px; cursor:pointer; transition:0.3s; font-size:clamp(12px,1.2vw,16px); }
+.channel strong{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.channel img{ width:80px; height:50px; border-radius:6px; margin-right:10px; }
+.channel:hover{ background:rgba(255,255,255,0.4); transform:scale(1.05); }
+.fav-btn{ margin-left:auto; font-size:clamp(16px,1.5vw,22px); cursor:pointer; }
+.player{ flex:1; display:flex; justify-content:center; align-items:center; height:100%; box-shadow:0 0 30px rgba(0,0,0,0.7); }
 @media (max-width: 900px) {
-  .container {
-    flex-direction: column;
-    height: auto;
-  }
-  .sidebar {
-    width: 90%; /* réduit la largeur sur mobile pour que tout soit visible */
-    max-height: 300px;
-    overflow-y: auto;
-    margin-bottom: 10px;
-  }
-  .player {
-    width: 100%;
-    height: auto;
-  }
-  video {
-    width: 100% !important;
-    height: auto !important;
-  }
+  .container { flex-direction: column; height: auto; }
+  .sidebar { width: 90%; max-height: 300px; overflow-y: auto; margin-bottom: 10px; }
+  .player { width: 100%; height: auto; }
+  video { width: 100% !important; height: auto !important; }
   .category-btn { padding: 10px; font-size:14px; }
   .channel img { width:60px; height:40px; }
 }
+.seo-text { padding: 20px; color: white; }
 </style>
 </head>
 
@@ -228,6 +73,28 @@ white-space:nowrap;
 </header>
 
 <div class="container">
+
+<!-- Texte SEO ajouté pour Google -->
+<div class="seo-text">
+  <h1>KIANA TV — Toutes Catégories & Réglages</h1>
+  <p>Regardez vos chaînes préférées en streaming gratuit. Profitez de Sports, Films, Séries, Musique et Infos disponibles directement sur KIANA TV.</p>
+
+  <section>
+    <h2>Catégories disponibles</h2>
+    <ul>
+      <li>⭐ Préférées</li>
+      <li>Toutes les chaînes</li>
+      <li>Afrique</li>
+      <li>International</li>
+      <li>Infos</li>
+      <li>Sports</li>
+      <li>Musique</li>
+      <li>Films</li>
+      <li>Séries</li>
+    </ul>
+  </section>
+</div>
+
 <div class="sidebar" id="sidebar">
 <div class="search-box">
 <input type="text" id="search" placeholder="Rechercher une chaîne..." onkeydown="if(event.key==='Enter'){searchNow();}">
@@ -245,67 +112,26 @@ white-space:nowrap;
 <script src="https://unpkg.com/videojs-http-source-selector@1.1.5/dist/videojs-http-source-selector.min.js"></script>
 
 <script>
-
+// Code JS existant (player, favoris, chargement m3u)
 var player = videojs('player',{
 autoplay:false,
 fluid:true,
 preload:"auto",
-html5:{
-vhs:{
-overrideNative:true,
-enableLowInitialPlaylist:true,
-smoothQualityChange:true,
-bandwidth:200000
-}
-}
+html5:{vhs:{overrideNative:true,enableLowInitialPlaylist:true,smoothQualityChange:true,bandwidth:200000}}
 });
-
 player.httpSourceSelector();
-
 player.ready(function(){ player.volume(1); });
 
 var lang='fr';
-
 function toggleDropdown(){ const d=document.getElementById('dropdownMenu'); d.style.display=(d.style.display==='block'?'none':'block'); }
 function setLanguage(l){ lang=l; }
 
 function getFavs(){ return JSON.parse(localStorage.getItem("kianaFavs")||"[]"); }
 function saveFavs(f){ localStorage.setItem("kianaFavs",JSON.stringify(f)); }
+function toggleFavorite(ch,el){ event.stopPropagation(); let favs=getFavs(); let index=favs.findIndex(x=>x.url===ch.url); if(index>-1){ favs.splice(index,1); el.style.color="white"; } else { favs.push(ch); el.style.color="red"; } saveFavs(favs); }
 
-function toggleFavorite(ch,el){
-event.stopPropagation();
-let favs=getFavs();
-let index=favs.findIndex(x=>x.url===ch.url);
-if(index>-1){ favs.splice(index,1); el.style.color="white"; }
-else { favs.push(ch); el.style.color="red"; }
-saveFavs(favs);
-}
-
-let allChannels=[];
-let m3uCache={};
-
-const categories=[
-{name:"⭐ Préférées",static:true},
-{name:"Toutes les chaînes",m3u:[
-"https://iptv-org.github.io/iptv/regions/afr.m3u",
-"https://iptv-org.github.io/iptv/countries/fr.m3u",
-"https://iptv-org.github.io/iptv/categories/news.m3u",
-"https://iptv-org.github.io/iptv/categories/sports.m3u",
-"https://iptv-org.github.io/iptv/categories/music.m3u",
-"https://iptv-org.github.io/iptv/categories/movies.m3u"
-]},
-{name:"Afrique",m3u:["https://iptv-org.github.io/iptv/regions/afr.m3u"]},
-{name:"International",m3u:[
-"https://iptv-org.github.io/iptv/categories/news.m3u",
-"https://iptv-org.github.io/iptv/categories/music.m3u",
-"https://iptv-org.github.io/iptv/categories/movies.m3u"
-]},
-{name:"Infos",m3u:["https://iptv-org.github.io/iptv/categories/news.m3u"]},
-{name:"Sports",m3u:["https://iptv-org.github.io/iptv/categories/sports.m3u"]},
-{name:"Musique",m3u:["https://iptv-org.github.io/iptv/categories/music.m3u"]},
-{name:"Films",m3u:["https://iptv-org.github.io/iptv/categories/movies.m3u"]},
-{name:"Séries",m3u:["https://iptv-org.github.io/iptv/categories/movies.m3u"]}
-];
+let allChannels=[]; let m3uCache={};
+const categories=[{name:"⭐ Préférées",static:true},{name:"Toutes les chaînes",m3u:["https://iptv-org.github.io/iptv/regions/afr.m3u","https://iptv-org.github.io/iptv/countries/fr.m3u","https://iptv-org.github.io/iptv/categories/news.m3u","https://iptv-org.github.io/iptv/categories/sports.m3u","https://iptv-org.github.io/iptv/categories/music.m3u","https://iptv-org.github.io/iptv/categories/movies.m3u"]},{name:"Afrique",m3u:["https://iptv-org.github.io/iptv/regions/afr.m3u"]},{name:"International",m3u:["https://iptv-org.github.io/iptv/categories/news.m3u","https://iptv-org.github.io/iptv/categories/music.m3u","https://iptv-org.github.io/iptv/categories/movies.m3u"]},{name:"Infos",m3u:["https://iptv-org.github.io/iptv/categories/news.m3u"]},{name:"Sports",m3u:["https://iptv-org.github.io/iptv/categories/sports.m3u"]},{name:"Musique",m3u:["https://iptv-org.github.io/iptv/categories/music.m3u"]},{name:"Films",m3u:["https://iptv-org.github.io/iptv/categories/movies.m3u"]},{name:"Séries",m3u:["https://iptv-org.github.io/iptv/categories/movies.m3u"]}];
 
 function buildSidebar(cats){
 const sb=document.getElementById('sidebar');

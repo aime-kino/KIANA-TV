@@ -283,33 +283,7 @@ saveFavs(favs);
 
 let allChannels=[];
 let m3uCache={};
-{name:"Films & Séries FR",channels:[
 
-{
-name:"Arte Français",
-logo:"https://upload.wikimedia.org/wikipedia/commons/0/0c/Arte_logo.svg",
-url:"https://artesimulcast.akamaized.net/hls/live/2031003/artelive_fr/master.m3u8"
-},
-
-{
-name:"Nollywood Movies",
-logo:"https://i.imgur.com/0Fh6F6F.png",
-url:"https://cdn3.wowza.com/5/ZnV4TE16d0Q0ZzYx/nollywood/playlist.m3u8"
-},
-
-{
-name:"Africa Movie Channel",
-logo:"https://i.imgur.com/X6dH2pK.png",
-url:"https://amc-amcfast-amagi.amagi.tv/playlist.m3u8"
-},
-
-{
-name:"TF1 Séries Films",
-logo:"https://upload.wikimedia.org/wikipedia/commons/3/3d/TF1_S%C3%A9ries_Films_logo.png",
-url:"https://tf1-hls-live.akamaized.net/hls/live/2036054/tf1seriesfilms/master.m3u8"
-}
-
-]}
 const categories=[
 {name:"⭐ Préférées",static:true},
 {name:"Toutes les chaînes",m3u:[
@@ -403,6 +377,5 @@ results.forEach(ch=>{ createChannel(res,ch); });
 </script>
 </body>
 </html>
-
 
 

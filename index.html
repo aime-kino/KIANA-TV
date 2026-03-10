@@ -3,12 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+
 <title>KIANA TV — Toutes Catégories & Réglages</title>
 
 <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet">
 <link href="https://unpkg.com/videojs-http-source-selector@1.1.5/dist/videojs-http-source-selector.css" rel="stylesheet">
 
 <style>
+
+html{
+font-size:clamp(12px,1.1vw,18px);
+}
+
 body, html {
   margin:0; padding:0;
   font-family: Arial, sans-serif;
@@ -32,7 +39,7 @@ header {
   display:flex;
   justify-content:space-between;
   align-items:center;
-  font-size:28px;
+  font-size:clamp(18px,2vw,28px);
   font-weight:bold;
   text-shadow:2px 2px 5px #000;
   position:relative;
@@ -43,7 +50,7 @@ header {
 
 .menu-btn {
   cursor:pointer;
-  font-size:24px;
+  font-size:clamp(16px,1.8vw,24px);
   padding:5px;
 }
 
@@ -65,6 +72,7 @@ header {
   padding:10px;
   cursor:pointer;
   border-bottom:1px solid #444;
+  font-size:clamp(12px,1.2vw,16px);
 }
 
 .dropdown-menu div:last-child{border:none;}
@@ -93,7 +101,7 @@ header {
   padding:10px;
   border-radius:8px 0 0 8px;
   border:none;
-  font-size:16px;
+  font-size:clamp(12px,1.2vw,16px);
 }
 
 .search-box button {
@@ -102,7 +110,7 @@ header {
   border:none;
   border-radius:0 8px 8px 0;
   cursor:pointer;
-  font-size:16px;
+  font-size:clamp(12px,1.2vw,16px);
 }
 
 .category-btn {
@@ -112,6 +120,7 @@ header {
   border-radius:8px;
   cursor:pointer;
   font-weight:bold;
+  font-size:clamp(13px,1.3vw,17px);
   transition:0.3s;
 }
 
@@ -135,6 +144,7 @@ header {
   border-radius:8px;
   cursor:pointer;
   transition:0.3s;
+  font-size:clamp(12px,1.2vw,16px);
 }
 
 .channel img{
@@ -151,7 +161,7 @@ header {
 
 .fav-btn{
   margin-left:auto;
-  font-size:22px;
+  font-size:clamp(16px,1.5vw,22px);
   cursor:pointer;
 }
 
@@ -183,9 +193,10 @@ header {
     width: 100% !important;
     height: auto !important;
   }
-  .category-btn { font-size: 16px; padding: 10px; }
+  .category-btn { padding: 10px; }
   .channel img { width:60px; height:40px; }
 }
+
 </style>
 </head>
 
@@ -225,9 +236,26 @@ header {
 <script src="https://unpkg.com/videojs-http-source-selector@1.1.5/dist/videojs-http-source-selector.min.js"></script>
 
 <script>
-var player = videojs('player',{autoplay:false,fluid:true});
+
+var player = videojs('player',{
+autoplay:false,
+fluid:true,
+preload:"auto",
+html5:{
+vhs:{
+overrideNative:true,
+enableLowInitialPlaylist:true,
+smoothQualityChange:true,
+bandwidth:200000
+}
+}
+});
+
 player.httpSourceSelector();
-player.ready(function(){player.volume(1);});
+
+player.ready(function(){
+player.volume(1);
+});
 
 var lang='fr';
 
@@ -251,6 +279,7 @@ saveFavs(favs);
 }
 
 let allChannels=[];
+let m3uCache={};
 
 const categories=[
 {name:"⭐ Préférées",static:true},
@@ -283,8 +312,9 @@ const list=document.createElement('div'); list.className='channel-list'; sb.appe
 let vis=false;
 btn.onclick=async()=>{
 if(vis){ list.style.display='none'; vis=false; return;}
-list.innerHTML=''; list.style.display='flex';
+list.innerHTML='Chargement...'; list.style.display='flex';
 const channels=cat.static ? getFavs() : await loadM3U(cat.m3u);
+list.innerHTML='';
 channels.forEach(ch=>{ createChannel(list,ch); });
 if(channels.length===0) list.innerHTML="Aucune chaîne disponible";
 vis=true;
@@ -302,8 +332,54 @@ list.appendChild(div);
 }
 
 async function loadM3U(urls){
-const arr=[]; for(let u of urls){ try{ const r=await fetch(u); const t=await r.text(); const lines=t.split('\n'); for(let i=0;i<lines.length;i++){ if(lines[i].startsWith('#EXTINF:')){ const nm=lines[i].split(',')[1]||"Unknown"; const lgm=lines[i].match(/tvg-logo="([^"]+)"/); const lg=lgm?lgm[1]:"https://via.placeholder.com/80x50?text=TV"; const url=lines[i+1]; if(url && !url.startsWith('#')){ const ch={name:nm,logo:lg,url}; arr.push(ch); allChannels.push(ch); }}}}catch{}}
+
+const arr=[];
+
+for(let u of urls){
+
+try{
+
+if(m3uCache[u]){
+arr.push(...m3uCache[u]);
+continue;
+}
+
+const r=await fetch(u,{cache:"force-cache"});
+const t=await r.text();
+
+const lines=t.split('\n');
+const parsed=[];
+
+for(let i=0;i<lines.length;i++){
+
+if(lines[i].startsWith('#EXTINF:')){
+
+const nm=lines[i].split(',')[1]||"Unknown";
+
+const lgm=lines[i].match(/tvg-logo="([^"]+)"/);
+const lg=lgm?lgm[1]:"https://via.placeholder.com/80x50?text=TV";
+
+const url=lines[i+1];
+
+if(url && !url.startsWith('#')){
+const ch={name:nm,logo:lg,url};
+parsed.push(ch);
+allChannels.push(ch);
+}
+
+}
+
+}
+
+m3uCache[u]=parsed;
+arr.push(...parsed);
+
+}catch{}
+
+}
+
 return arr;
+
 }
 
 buildSidebar(categories);
@@ -316,6 +392,7 @@ let results=allChannels.filter(c=>c.name.toLowerCase().includes(q));
 if(results.length===0){ res.innerHTML="<div style='padding:10px'>Aucune chaîne correspondante</div>"; return; }
 results.forEach(ch=>{ createChannel(res,ch); });
 }
+
 </script>
 
 </body>

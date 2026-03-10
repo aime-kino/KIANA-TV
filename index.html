@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="mobile-web-app-capable" content="yes">
+<meta name="playsinline" content="true">
 
 <title>KIANA TV — Toutes Catégories & Réglages</title>
 
@@ -85,6 +86,7 @@ header {
 
 .sidebar {
   width:300px;
+  max-width:100%;
   background:rgba(0,0,0,0.4);
   padding:20px;
   border-radius:15px;
@@ -102,6 +104,7 @@ header {
   border-radius:8px 0 0 8px;
   border:none;
   font-size:clamp(12px,1.2vw,16px);
+  min-width:0;
 }
 
 .search-box button {
@@ -111,6 +114,7 @@ header {
   border-radius:0 8px 8px 0;
   cursor:pointer;
   font-size:clamp(12px,1.2vw,16px);
+  white-space:nowrap;
 }
 
 .category-btn {
@@ -145,6 +149,13 @@ header {
   cursor:pointer;
   transition:0.3s;
   font-size:clamp(12px,1.2vw,16px);
+}
+
+.channel strong{
+flex:1;
+overflow:hidden;
+text-overflow:ellipsis;
+white-space:nowrap;
 }
 
 .channel img{
@@ -228,7 +239,7 @@ header {
 </div>
 
 <div class="player">
-<video id="player" class="video-js vjs-default-skin" controls autoplay></video>
+<video id="player" class="video-js vjs-default-skin" controls autoplay playsinline></video>
 </div>
 </div>
 
@@ -326,7 +337,7 @@ function createChannel(list,ch){
 let favs=getFavs(); let isFav=favs.find(x=>x.url===ch.url);
 const div=document.createElement('div'); div.className='channel';
 div.innerHTML=`<img src="${ch.logo}"><strong>${ch.name}</strong><span class="fav-btn" style="color:${isFav?'red':'white'}">❤</span>`;
-div.onclick=()=>{ player.src({src:ch.url,type:'application/x-mpegURL'}); player.play(); };
+div.onclick=()=>{ player.src({src:ch.url,type:'application/vnd.apple.mpegurl'}); player.play(); };
 div.querySelector(".fav-btn").onclick=(e)=>{ toggleFavorite(ch,e.target); };
 list.appendChild(div);
 }

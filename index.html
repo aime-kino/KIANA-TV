@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="playsinline" content="true">                                      
+<meta name="playsinline" content="true">                                                           
 <title>KIANA TV — Toutes Catégories & Réglages</title>
 
 <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet">
@@ -328,7 +328,7 @@ vis=true;
 function createChannel(list,ch){
 let favs=getFavs(); let isFav=favs.find(x=>x.url===ch.url);
 const div=document.createElement('div'); div.className='channel';
-div.innerHTML=<img src="${ch.logo}"><strong>${ch.name}</strong><span class="fav-btn" style="color:${isFav?'red':'white'}">❤</span>;
+div.innerHTML=`<img src="${ch.logo}"><strong>${ch.name}</strong><span class="fav-btn" style="color:${isFav?'red':'white'}">❤</span>`;
 div.onclick=()=>{ player.src({src:ch.url,type:'application/vnd.apple.mpegurl'}); player.play(); };
 div.querySelector(".fav-btn").onclick=(e)=>{ toggleFavorite(ch,e.target); };
 list.appendChild(div);
@@ -377,3 +377,4 @@ results.forEach(ch=>{ createChannel(res,ch); });
 </script>
 </body>
 </html>
+

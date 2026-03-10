@@ -11,7 +11,6 @@
 <link href="https://unpkg.com/videojs-http-source-selector@1.1.5/dist/videojs-http-source-selector.css" rel="stylesheet">
 
 <style>
-
 html{
 font-size:clamp(12px,1.1vw,18px);
 }
@@ -304,7 +303,12 @@ const categories=[
 {name:"Sports",m3u:["https://iptv-org.github.io/iptv/categories/sports.m3u"]},
 {name:"Musique",m3u:["https://iptv-org.github.io/iptv/categories/music.m3u"]},
 {name:"Films",m3u:["https://iptv-org.github.io/iptv/categories/movies.m3u"]},
-{name:"Séries",m3u:["https://iptv-org.github.io/iptv/categories/movies.m3u"]}
+{name:"Séries",m3u:["https://iptv-org.github.io/iptv/categories/movies.m3u"]},
+// 🔹 Ajout TV5Monde et Trace Africa
+{name:"Francophones",m3u:[],static:false,channels:[
+{name:"TV5Monde",logo:"https://i.imgur.com/0N64Ddn.png",url:"https://ott.tv5monde.com/Content/HLS/Live/channel(orient)/variant.m3u8"},
+{name:"Trace Africa",logo:"https://i.imgur.com/DLIbUMx.png",url:"https://lightning-traceurban-samsungau.amagi.tv/playlist.m3u8"}
+]}
 ];
 
 function buildSidebar(cats){
@@ -316,7 +320,10 @@ let vis=false;
 btn.onclick=async()=>{
 if(vis){ list.style.display='none'; vis=false; return;}
 list.innerHTML='Chargement...'; list.style.display='flex';
-const channels=cat.static ? getFavs() : await loadM3U(cat.m3u);
+let channels=[];
+if(cat.static){ channels=getFavs(); }
+else if(cat.channels){ channels=cat.channels; } // 🔹 utilise nos chaînes statiques si présentes
+else{ channels=await loadM3U(cat.m3u); }
 list.innerHTML='';
 channels.forEach(ch=>{ createChannel(list,ch); });
 if(channels.length===0) list.innerHTML="Aucune chaîne disponible";
@@ -377,4 +384,3 @@ results.forEach(ch=>{ createChannel(res,ch); });
 </script>
 </body>
 </html>
-

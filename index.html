@@ -4,8 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="playsinline" content="true">
-
+<meta name="playsinline" content="true">                                                           
 <title>KIANA TV — Toutes Catégories & Réglages</title>
 
 <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet">
@@ -14,7 +13,7 @@
 <style>
 
 html{
-  font-size:clamp(12px,1.1vw,18px);
+font-size:clamp(12px,1.1vw,18px);
 }
 
 body, html {
@@ -152,10 +151,10 @@ header {
 }
 
 .channel strong{
-  flex:1;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
+flex:1;
+overflow:hidden;
+text-overflow:ellipsis;
+white-space:nowrap;
 }
 
 .channel img{
@@ -191,7 +190,7 @@ header {
     height: auto;
   }
   .sidebar {
-    width: 100%;
+    width: 90%; /* réduit la largeur sur mobile pour que tout soit visible */
     max-height: 300px;
     overflow-y: auto;
     margin-bottom: 10px;
@@ -204,10 +203,9 @@ header {
     width: 100% !important;
     height: auto !important;
   }
-  .category-btn { padding: 10px; }
+  .category-btn { padding: 10px; font-size:14px; }
   .channel img { width:60px; height:40px; }
 }
-
 </style>
 </head>
 
@@ -249,158 +247,133 @@ header {
 <script>
 
 var player = videojs('player',{
-  autoplay:false,
-  fluid:true,
-  preload:"auto",
-  html5:{
-    vhs:{
-      overrideNative:true,
-      enableLowInitialPlaylist:true,
-      smoothQualityChange:true,
-      bandwidth:200000,
-      useBandwidthFromLocalStorage:true,
-      withCredentials:false
-    }
-  }
+autoplay:false,
+fluid:true,
+preload:"auto",
+html5:{
+vhs:{
+overrideNative:true,
+enableLowInitialPlaylist:true,
+smoothQualityChange:true,
+bandwidth:200000
+}
+}
 });
 
 player.httpSourceSelector();
 
-// Forcer le démarrage sur la plus faible qualité
-player.ready(function(){
-  player.volume(1);
-  if(player.vhs && player.vhs.representations && player.vhs.representations().length){
-    let reps = player.vhs.representations().sort((a,b)=>a.bandwidth - b.bandwidth);
-    reps[0].enabled(true);
-    reps.slice(1).forEach(r=>r.enabled(false));
-  }
-});
+player.ready(function(){ player.volume(1); });
 
 var lang='fr';
 
-function toggleDropdown(){
-  const d=document.getElementById('dropdownMenu');
-  d.style.display=(d.style.display==='block'?'none':'block');
-}
-
+function toggleDropdown(){ const d=document.getElementById('dropdownMenu'); d.style.display=(d.style.display==='block'?'none':'block'); }
 function setLanguage(l){ lang=l; }
 
 function getFavs(){ return JSON.parse(localStorage.getItem("kianaFavs")||"[]"); }
 function saveFavs(f){ localStorage.setItem("kianaFavs",JSON.stringify(f)); }
 
 function toggleFavorite(ch,el){
-  event.stopPropagation();
-  let favs=getFavs();
-  let index=favs.findIndex(x=>x.url===ch.url);
-  if(index>-1){ favs.splice(index,1); el.style.color="white"; }
-  else { favs.push(ch); el.style.color="red"; }
-  saveFavs(favs);
+event.stopPropagation();
+let favs=getFavs();
+let index=favs.findIndex(x=>x.url===ch.url);
+if(index>-1){ favs.splice(index,1); el.style.color="white"; }
+else { favs.push(ch); el.style.color="red"; }
+saveFavs(favs);
 }
 
 let allChannels=[];
 let m3uCache={};
 
 const categories=[
-  {name:"⭐ Préférées",static:true},
-  {name:"Toutes les chaînes",m3u:[
-    "https://iptv-org.github.io/iptv/regions/afr.m3u",
-    "https://iptv-org.github.io/iptv/countries/fr.m3u",
-    "https://iptv-org.github.io/iptv/categories/news.m3u",
-    "https://iptv-org.github.io/iptv/categories/sports.m3u",
-    "https://iptv-org.github.io/iptv/categories/music.m3u",
-    "https://iptv-org.github.io/iptv/categories/movies.m3u"
-  ]},
-  {name:"Afrique",m3u:["https://iptv-org.github.io/iptv/regions/afr.m3u"]},
-  {name:"International",m3u:[
-    "https://iptv-org.github.io/iptv/categories/news.m3u",
-    "https://iptv-org.github.io/iptv/categories/music.m3u",
-    "https://iptv-org.github.io/iptv/categories/movies.m3u"
-  ]},
-  {name:"Infos",m3u:["https://iptv-org.github.io/iptv/categories/news.m3u"]},
-  {name:"Sports",m3u:["https://iptv-org.github.io/iptv/categories/sports.m3u"]},
-  {name:"Musique",m3u:["https://iptv-org.github.io/iptv/categories/music.m3u"]},
-  {name:"Films",m3u:["https://iptv-org.github.io/iptv/categories/movies.m3u"]},
-  {name:"Séries",m3u:["https://iptv-org.github.io/iptv/categories/movies.m3u"]}
+{name:"⭐ Préférées",static:true},
+{name:"Toutes les chaînes",m3u:[
+"https://iptv-org.github.io/iptv/regions/afr.m3u",
+"https://iptv-org.github.io/iptv/countries/fr.m3u",
+"https://iptv-org.github.io/iptv/categories/news.m3u",
+"https://iptv-org.github.io/iptv/categories/sports.m3u",
+"https://iptv-org.github.io/iptv/categories/music.m3u",
+"https://iptv-org.github.io/iptv/categories/movies.m3u"
+]},
+{name:"Afrique",m3u:["https://iptv-org.github.io/iptv/regions/afr.m3u"]},
+{name:"International",m3u:[
+"https://iptv-org.github.io/iptv/categories/news.m3u",
+"https://iptv-org.github.io/iptv/categories/music.m3u",
+"https://iptv-org.github.io/iptv/categories/movies.m3u"
+]},
+{name:"Infos",m3u:["https://iptv-org.github.io/iptv/categories/news.m3u"]},
+{name:"Sports",m3u:["https://iptv-org.github.io/iptv/categories/sports.m3u"]},
+{name:"Musique",m3u:["https://iptv-org.github.io/iptv/categories/music.m3u"]},
+{name:"Films",m3u:["https://iptv-org.github.io/iptv/categories/movies.m3u"]},
+{name:"Séries",m3u:["https://iptv-org.github.io/iptv/categories/movies.m3u"]}
 ];
 
 function buildSidebar(cats){
-  const sb=document.getElementById('sidebar');
-  cats.forEach(cat=>{
-    const btn=document.createElement('div'); 
-    btn.className='category-btn'; 
-    btn.innerText=cat.name; 
-    sb.appendChild(btn);
-    const list=document.createElement('div'); 
-    list.className='channel-list'; 
-    sb.appendChild(list);
-    let vis=false;
-    btn.onclick=async()=>{
-      if(vis){ list.style.display='none'; vis=false; return;}
-      list.innerHTML='Chargement...'; list.style.display='flex';
-      const channels=cat.static ? getFavs() : await loadM3U(cat.m3u);
-      list.innerHTML='';
-      channels.forEach(ch=>{ createChannel(list,ch); });
-      if(channels.length===0) list.innerHTML="Aucune chaîne disponible";
-      vis=true;
-    };
-  });
+const sb=document.getElementById('sidebar');
+cats.forEach(cat=>{
+const btn=document.createElement('div'); btn.className='category-btn'; btn.innerText=cat.name; sb.appendChild(btn);
+const list=document.createElement('div'); list.className='channel-list'; sb.appendChild(list);
+let vis=false;
+btn.onclick=async()=>{
+if(vis){ list.style.display='none'; vis=false; return;}
+list.innerHTML='Chargement...'; list.style.display='flex';
+const channels=cat.static ? getFavs() : await loadM3U(cat.m3u);
+list.innerHTML='';
+channels.forEach(ch=>{ createChannel(list,ch); });
+if(channels.length===0) list.innerHTML="Aucune chaîne disponible";
+vis=true;
+};
+});
 }
 
 function createChannel(list,ch){
-  let favs=getFavs(); 
-  let isFav=favs.find(x=>x.url===ch.url);
-  const div=document.createElement('div'); 
-  div.className='channel';
-  div.innerHTML=`<img src="${ch.logo}"><strong>${ch.name}</strong><span class="fav-btn" style="color:${isFav?'red':'white'}">❤</span>`;
-  div.onclick=()=>{ player.src({src:ch.url,type:'application/vnd.apple.mpegurl'}); player.play(); };
-  div.querySelector(".fav-btn").onclick=(e)=>{ toggleFavorite(ch,e.target); };
-  list.appendChild(div);
+let favs=getFavs(); let isFav=favs.find(x=>x.url===ch.url);
+const div=document.createElement('div'); div.className='channel';
+div.innerHTML=`<img src="${ch.logo}"><strong>${ch.name}</strong><span class="fav-btn" style="color:${isFav?'red':'white'}">❤</span>`;
+div.onclick=()=>{ player.src({src:ch.url,type:'application/vnd.apple.mpegurl'}); player.play(); };
+div.querySelector(".fav-btn").onclick=(e)=>{ toggleFavorite(ch,e.target); };
+list.appendChild(div);
 }
 
 async function loadM3U(urls){
-  const arr=[];
-  for(let u of urls){
-    try{
-      if(m3uCache[u]){
-        arr.push(...m3uCache[u]);
-        continue;
-      }
-      const r=await fetch(u,{cache:"force-cache"});
-      const t=await r.text();
-      const lines=t.split('\n');
-      const parsed=[];
-      for(let i=0;i<lines.length;i++){
-        if(lines[i].startsWith('#EXTINF:')){
-          const nm=lines[i].split(',')[1]||"Unknown";
-          const lgm=lines[i].match(/tvg-logo="([^"]+)"/);
-          const lg=lgm?lgm[1]:"https://via.placeholder.com/80x50?text=TV";
-          const url=lines[i+1];
-          if(url && !url.startsWith('#')){
-            const ch={name:nm,logo:lg,url};
-            parsed.push(ch);
-            allChannels.push(ch);
-          }
-        }
-      }
-      m3uCache[u]=parsed;
-      arr.push(...parsed);
-    }catch{}
-  }
-  return arr;
+const arr=[];
+for(let u of urls){
+try{
+if(m3uCache[u]){ arr.push(...m3uCache[u]); continue; }
+const r=await fetch(u,{cache:"force-cache"});
+const t=await r.text();
+const lines=t.split('\n');
+const parsed=[];
+for(let i=0;i<lines.length;i++){
+if(lines[i].startsWith('#EXTINF:')){
+const nm=lines[i].split(',')[1]||"Unknown";
+const lgm=lines[i].match(/tvg-logo="([^"]+)"/);
+const lg=lgm?lgm[1]:"https://via.placeholder.com/80x50?text=TV";
+const url=lines[i+1];
+if(url && !url.startsWith('#')){
+const ch={name:nm,logo:lg,url};
+parsed.push(ch);
+allChannels.push(ch);
+}
+}
+}
+m3uCache[u]=parsed;
+arr.push(...parsed);
+}catch{}
+}
+return arr;
 }
 
 buildSidebar(categories);
 
 function searchNow(){
-  const q=document.getElementById('search').value.toLowerCase();
-  const res=document.getElementById('searchResults');
-  res.innerHTML="";
-  let results=allChannels.filter(c=>c.name.toLowerCase().includes(q));
-  if(results.length===0){ res.innerHTML="<div style='padding:10px'>Aucune chaîne correspondante</div>"; return; }
-  results.forEach(ch=>{ createChannel(res,ch); });
+const q=document.getElementById('search').value.toLowerCase();
+const res=document.getElementById('searchResults');
+res.innerHTML="";
+let results=allChannels.filter(c=>c.name.toLowerCase().includes(q));
+if(results.length===0){ res.innerHTML="<div style='padding:10px'>Aucune chaîne correspondante</div>"; return; }
+results.forEach(ch=>{ createChannel(res,ch); });
 }
 
 </script>
-
 </body>
 </html>

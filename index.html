@@ -12,6 +12,78 @@
 
 <style>
 
+/* LOADER */
+
+#loader{
+position:fixed;
+width:100%;
+height:100vh;
+background:white;
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+z-index:9999;
+color:#ff0080;
+font-family:Arial;
+}
+
+.doll{
+display:flex;
+flex-direction:column;
+align-items:center;
+margin-bottom:10px;
+}
+
+.head{
+width:70px;
+height:70px;
+background:#ffd1a4;
+border-radius:50%;
+position:relative;
+}
+
+.head::before,
+.head::after{
+content:"";
+width:8px;
+height:8px;
+background:black;
+border-radius:50%;
+position:absolute;
+top:28px;
+}
+
+.head::before{ left:18px; }
+.head::after{ right:18px; }
+
+.body-doll{
+width:80px;
+height:100px;
+background:#ff4da6;
+border-radius:40px;
+margin-top:5px;
+}
+
+.loading span{
+display:inline-block;
+width:12px;
+height:12px;
+background:#ff0080;
+border-radius:50%;
+margin:5px;
+animation:bounce 1s infinite;
+}
+
+.loading span:nth-child(2){animation-delay:0.2s;}
+.loading span:nth-child(3){animation-delay:0.4s;}
+
+@keyframes bounce{
+0%{transform:translateY(0)}
+50%{transform:translateY(-12px)}
+100%{transform:translateY(0)}
+}
+
 html{
 font-size:clamp(12px,1.1vw,18px);
 }
@@ -190,7 +262,7 @@ white-space:nowrap;
     height: auto;
   }
   .sidebar {
-    width: 90%; /* réduit la largeur sur mobile pour que tout soit visible */
+    width: 90%;
     max-height: 300px;
     overflow-y: auto;
     margin-bottom: 10px;
@@ -206,10 +278,27 @@ white-space:nowrap;
   .category-btn { padding: 10px; font-size:14px; }
   .channel img { width:60px; height:40px; }
 }
+
 </style>
 </head>
 
 <body>
+
+<!-- LOADER -->
+
+<div id="loader">
+<div class="doll">
+<div class="head"></div>
+<div class="body-doll"></div>
+</div>
+<h1>KIANA TV</h1>
+<div class="loading">
+<span></span>
+<span></span>
+<span></span>
+</div>
+</div>
+
 <header>
 📺 KIANA TV
 <div class="menu-container">
@@ -245,6 +334,14 @@ white-space:nowrap;
 <script src="https://unpkg.com/videojs-http-source-selector@1.1.5/dist/videojs-http-source-selector.min.js"></script>
 
 <script>
+
+/* DISPARITION DU LOADER */
+
+window.addEventListener("load",function(){
+setTimeout(function(){
+document.getElementById("loader").style.display="none";
+},3000);
+});
 
 var player = videojs('player',{
 autoplay:false,
@@ -377,5 +474,3 @@ results.forEach(ch=>{ createChannel(res,ch); });
 </script>
 </body>
 </html>
-
-

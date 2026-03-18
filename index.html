@@ -423,11 +423,43 @@ vis=true;
 }
 
 function createChannel(list,ch){
-let favs=getFavs(); let isFav=favs.find(x=>x.url===ch.url);
-const div=document.createElement('div'); div.className='channel';
-div.innerHTML=`<img src="${ch.logo}"><strong>${ch.name}</strong><span class="fav-btn" style="color:${isFav?'red':'white'}">❤</span>`;
-div.onclick=()=>{ player.src({src:ch.url,type:'application/vnd.apple.mpegurl'}); player.play(); };
-div.querySelector(".fav-btn").onclick=(e)=>{ toggleFavorite(ch,e.target); };
+let favs=getFavs(); 
+let isFav=favs.find(x=>x.url===ch.url);
+
+const div=document.createElement('div'); 
+div.className='channel';
+
+div.innerHTML=`<img src="${ch.logo}">
+<strong>${ch.name}</strong>
+<span class="fav-btn" style="color:${isFav?'red':'white'}">❤</span>`;
+
+/* 👉 CLICK */
+div.onclick=()=>{
+
+/* PUB SÉCURISÉE */
+try{
+window.open("https://www.effectivegatecpm.com/shypbmkwsu?key=5de73c15f801a01d2c0a830bd43966f7","_blank");
+}catch(e){}
+
+/* PLAYER */
+player.src({
+src: ch.url,
+type:'application/vnd.apple.mpegurl'
+});
+
+player.play();
+
+};
+
+/* FAVORIS */
+const favBtn = div.querySelector(".fav-btn");
+if(favBtn){
+favBtn.onclick=(e)=>{
+e.stopPropagation();
+toggleFavorite(ch,e.target);
+};
+}
+
 list.appendChild(div);
 }
 

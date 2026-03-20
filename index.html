@@ -335,13 +335,24 @@ white-space:nowrap;
 
 <script>
 
-/* DISPARITION DU LOADER */
+/* DISPARITION DU LOADER (FIX) */
 
-window.addEventListener("load",function(){
-setTimeout(function(){
-document.getElementById("loader").style.display="none";
-},3000);
+document.addEventListener("DOMContentLoaded", function(){
+  setTimeout(function(){
+    const loader = document.getElementById("loader");
+    if(loader){
+      loader.style.opacity = "0";
+      loader.style.transition = "0.5s";
+      setTimeout(()=> loader.style.display="none", 500);
+    }
+  }, 1500);
 });
+
+/* sécurité anti-blocage */
+setTimeout(()=>{
+  const loader = document.getElementById("loader");
+  if(loader) loader.style.display = "none";
+}, 5000);
 
 var player = videojs('player',{
 autoplay:false,
@@ -434,17 +445,24 @@ div.innerHTML=`<img src="${ch.logo}">
 <span class="fav-btn" style="color:${isFav?'red':'white'}">❤</span>`;
 
 /* 👉 CLICK */
+
 div.onclick=()=>{
 
-/* PUB SÉCURISÉE */
-try{
-window.open("https://www.effectivegatecpm.com/shypbmkwsu?key=5de73c15f801a01d2c0a830bd43966f7","_blank");
-}catch(e){}
+/* PUB UNE SEULE FOIS */
+let adShown = localStorage.getItem("kianaAdShown");
+
+if(!adShown){
+  try{
+    window.open("https://www.effectivegatecpm.com/shypbmkwsu?key=5de73c15f801a01d2c0a830bd43966f7","_blank");
+  }catch(e){}
+  
+  localStorage.setItem("kianaAdShown", "true");
+}
 
 /* PLAYER */
 player.src({
-src: ch.url,
-type:'application/vnd.apple.mpegurl'
+  src: ch.url,
+  type:'application/vnd.apple.mpegurl'
 });
 
 player.play();

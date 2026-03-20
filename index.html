@@ -279,6 +279,32 @@ white-space:nowrap;
   .channel img { width:60px; height:40px; }
 }
 
+.menu-item {
+  padding:10px;
+  cursor:pointer;
+  border-bottom:1px solid #444;
+}
+
+.menu-item:hover{
+  background:#333;
+}
+
+.sub-menu {
+  display:none;
+  padding-left:15px;
+  background:rgba(255,255,255,0.05);
+}
+
+.sub-menu div {
+  padding:8px;
+  cursor:pointer;
+  font-size:14px;
+}
+
+.sub-menu div:hover {
+  background:#444;
+}
+
 </style>
 </head>
 
@@ -302,16 +328,35 @@ white-space:nowrap;
 <header>
 📺 KIANA TV
 <div class="menu-container">
-<div class="menu-btn" onclick="toggleDropdown()">☰ Paramètres</div>
+<div class="menu-btn" onclick="toggleDropdown()">☰ Menu</div>
 <div class="dropdown-menu" id="dropdownMenu">
-<div onclick="setLanguage('fr')">Français</div>
-<div onclick="setLanguage('en')">English</div>
-<div onclick="setLanguage('es')">Español</div>
-<div onclick="setLanguage('ar')">العربية</div>
-<div onclick="setLanguage('de')">Deutsch</div>
-<div onclick="setLanguage('it')">Italiano</div>
-<div onclick="setLanguage('zh')">中文</div>
-<div onclick="setLanguage('ja')">日本語</div>
+
+<!-- LANGUES -->
+<div class="menu-item" onclick="toggleSubMenu('langMenu')">🌍 Langues</div>
+<div class="sub-menu" id="langMenu">
+  <div onclick="setLanguage('fr')">Français</div>
+  <div onclick="setLanguage('en')">English</div>
+  <div onclick="setLanguage('es')">Español</div>
+  <div onclick="setLanguage('ar')">العربية</div>
+  <div onclick="setLanguage('de')">Deutsch</div>
+  <div onclick="setLanguage('it')">Italiano</div>
+  <div onclick="setLanguage('zh')">中文</div>
+  <div onclick="setLanguage('ja')">日本語</div>
+</div>
+
+<!-- THEMES -->
+<div class="menu-item" onclick="toggleSubMenu('themeMenu')">🎨 Thèmes</div>
+<div class="sub-menu" id="themeMenu">
+  <div onclick="setTheme('pink')">Rose</div>
+  <div onclick="setTheme('blue')">Bleu</div>
+  <div onclick="setTheme('green')">Vert</div>
+  <div onclick="setTheme('purple')">Violet</div>
+  <div onclick="setTheme('dark')">Sombre</div>
+  <div onclick="setTheme('sunset')">Coucher de soleil</div>
+  <div onclick="setTheme('ocean')">Océan</div>
+  <div onclick="setTheme('fire')">Feu</div>
+  <div onclick="setTheme('gold')">Or</div>
+  <div onclick="setTheme('neon')">Néon</div>
 </div>
 </div>
 </header>
@@ -375,6 +420,73 @@ player.ready(function(){ player.volume(1); });
 var lang='fr';
 
 function toggleDropdown(){ const d=document.getElementById('dropdownMenu'); d.style.display=(d.style.display==='block'?'none':'block'); }
+function toggleSubMenu(id){
+  const el = document.getElementById(id);
+  const isHidden = window.getComputedStyle(el).display === "none";
+  el.style.display = isHidden ? "block" : "none";
+}
+
+/* OBJET DE TRADUCTION */
+const translations = {
+  fr: { menu: "Menu", langues: "Langues", themes: "Thèmes", rechercher: "Rechercher une chaîne..." },
+  en: { menu: "Menu", langues: "Languages", themes: "Themes", rechercher: "Search channel..." },
+  es: { menu: "Menú", langues: "Idiomas", themes: "Temas", rechercher: "Buscar canal..." },
+  de: { menu: "Menü", langues: "Sprachen", themes: "Themen", rechercher: "Kanal suchen..." },
+  it: { menu: "Menu", langues: "Lingue", themes: "Temi", rechercher: "Cerca canale..." },
+  ar: { menu: "القائمة", langues: "اللغات", themes: "الألوان", rechercher: "ابحث عن قناة..." },
+  zh: { menu: "菜单", langues: "语言", themes: "主题", rechercher: "搜索频道..." },
+  ja: { menu: "メニュー", langues: "言語", themes: "テーマ", rechercher: "チャンネル検索..." }
+};
+
+/* CHANGER LA LANGUE ET APPLIQUER LES TEXTES */
+function setLanguage(l){
+  lang = l;
+  const t = translations[l];
+  if(!t) return;
+
+  document.querySelector(".menu-btn").innerText = "☰ " + t.menu;
+  document.querySelector("[onclick=\"toggleSubMenu('langMenu')\"]").innerText = "🌍 " + t.langues;
+  document.querySelector("[onclick=\"toggleSubMenu('themeMenu')\"]").innerText = "🎨 " + t.themes;
+  document.querySelector("#search").placeholder = t.rechercher;
+}
+
+/* THÈMES */
+function setTheme(theme){
+  let bg;
+  switch(theme){
+    case 'pink': bg = "linear-gradient(120deg,#ff9a9e,#fad0c4,#fbc2eb)"; break;
+    case 'blue': bg = "linear-gradient(120deg,#2193b0,#6dd5ed)"; break;
+    case 'green': bg = "linear-gradient(120deg,#56ab2f,#a8e063)"; break;
+    case 'purple': bg = "linear-gradient(120deg,#8e2de2,#4a00e0)"; break;
+    case 'dark': bg = "linear-gradient(120deg,#232526,#414345)"; break;
+    case 'sunset': bg = "linear-gradient(120deg,#ff7e5f,#feb47b)"; break;
+    case 'ocean': bg = "linear-gradient(120deg,#2E3192,#1BFFFF)"; break;
+    case 'fire': bg = "linear-gradient(120deg,#f12711,#f5af19)"; break;
+    case 'gold': bg = "linear-gradient(120deg,#FFD700,#FF8C00)"; break;
+    case 'neon': bg = "linear-gradient(120deg,#00f260,#0575e6)"; break;
+  }
+
+  document.body.style.background = bg;
+  document.body.style.backgroundSize = "400% 400%";
+
+  document.querySelector("header").style.background = "rgba(0,0,0,0.5)";
+  document.querySelectorAll(".sidebar, .dropdown-menu").forEach(el=>{
+    el.style.background = "rgba(0,0,0,0.4)";
+  });
+
+  localStorage.setItem("kianaTheme", bg);
+}
+
+/* RESTAURER LE THÈME AU RELOAD */
+window.addEventListener("DOMContentLoaded", () => {
+  const savedTheme = localStorage.getItem("kianaTheme");
+  if(savedTheme){
+    document.body.style.background = savedTheme;
+    document.body.style.backgroundSize = "400% 400%";
+  }
+
+  setLanguage(lang);
+});
 function setLanguage(l){ lang=l; }
 
 function getFavs(){ return JSON.parse(localStorage.getItem("kianaFavs")||"[]"); }

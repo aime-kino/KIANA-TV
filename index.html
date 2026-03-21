@@ -326,7 +326,7 @@ white-space:nowrap;
 </div>
 
 <header>
-📺 KIANA TV
+📺 𝐊𝐈𝐀𝐍𝐀 𝐓𝐕
 <div class="menu-container">
 <div class="menu-btn" onclick="toggleDropdown()">☰ Menu</div>
 <div class="dropdown-menu" id="dropdownMenu">
@@ -560,15 +560,17 @@ div.innerHTML=`<img src="${ch.logo}">
 
 div.onclick=()=>{
 
-/* PUB UNE SEULE FOIS */
-let adShown = localStorage.getItem("kianaAdShown");
+/* PUB TOUTES LES 2 HEURES */
+let lastAdTime = localStorage.getItem("kianaLastAdTime");
+let now = Date.now();
+let twoHours = 2 * 60 * 60 * 1000;
 
-if(!adShown){
+if(!lastAdTime || (now - lastAdTime) > twoHours){
   try{
     window.open("https://www.effectivegatecpm.com/shypbmkwsu?key=5de73c15f801a01d2c0a830bd43966f7","_blank");
   }catch(e){}
-  
-  localStorage.setItem("kianaAdShown", "true");
+
+  localStorage.setItem("kianaLastAdTime", now);
 }
 
 /* PLAYER */

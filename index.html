@@ -305,6 +305,31 @@ white-space:nowrap;
   background:#444;
 }
 
+#channelOverlay {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.6);
+  padding: 10px 20px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  color: white;
+  font-size: clamp(14px, 1.2vw, 18px);
+  z-index: 10000;
+  pointer-events: none; /* overlay non cliquable sauf le cœur */
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+#channelOverlay span {
+  pointer-events: auto;
+  cursor: pointer;
+  z-index: 10001; /* au-dessus du player pour que le clic fonctionne */
+}
+
 </style>
 </head>
 
@@ -372,6 +397,12 @@ white-space:nowrap;
 
 <div class="player">
 <video id="player" class="video-js vjs-default-skin" controls autoplay playsinline></video>
+
+<!-- Overlay flottant au-dessus du player -->
+<div id="channelOverlay" style="opacity:0;">
+  <span id="overlayName"></span>
+  <span id="overlayFav">❤</span>
+</div>
 </div>
 </div>
 
@@ -416,6 +447,40 @@ bandwidth:200000
 player.httpSourceSelector();
 
 player.ready(function(){ player.volume(1); });
+
+// --- Overlay HUD synchronisé ---
+const overlay = document.getElementById("channelOverlay");
+const overlayName = document.getElementById("overlayName");
+const overlayFav = document.getElementById("overlayFav");
+
+// Fonction pour mettre à jour nom + couleur du cœur
+function updateOverlay() {
+  const currentSrc = player.currentSrc();
+  const currentCh = allChannels.find(c => c.url === currentSrc);
+  if(currentCh){
+    overlayName.textContent = currentCh.name;
+    overlayFav.style.color = getFavs().some(f => f.url === currentCh.url) ? 'red' : 'white';
+  }
+}
+
+// Mettre à jour au démarrage du flux
+player.on('play', updateOverlay);
+player.on('loadedmetadata', updateOverlay); // sécurité pour flux lent
+
+// Afficher l'overlay quand les contrôles apparaissent
+player.on('useractive', () => { overlay.style.opacity = 1; });
+
+// Masquer l'overlay quand les contrôles disparaissent
+player.on('userinactive', () => { overlay.style.opacity = 0; });
+
+// Clic sur le cœur dans l'overlay
+overlayFav.onclick = (e) => {
+  e.stopPropagation(); // empêcher Video.js de capturer le clic
+  const currentSrc = player.currentSrc();
+  const currentCh = allChannels.find(c => c.url === currentSrc);
+  if(currentCh) toggleFavorite(currentCh, overlayFav);
+  updateOverlay(); // met à jour couleur du cœur immédiatement
+};
 
 var lang='fr';
 
@@ -545,54 +610,57 @@ vis=true;
 });
 }
 
-function createChannel(list,ch){
-let favs=getFavs(); 
-let isFav=favs.find(x=>x.url===ch.url);
+function createChannel(list, ch) {
+  let favs = getFavs();
+  let isFav = favs.find(x => x.url === ch.url);
 
-const div=document.createElement('div'); 
-div.className='channel';
+  // Création du div de la chaîne
+  const div = document.createElement('div');
+  div.className = 'channel';
+  div.innerHTML = `
+    <img src="${ch.logo}">
+    <strong>${ch.name}</strong>
+    <span class="fav-btn" style="color:${isFav ? 'red' : 'white'}">❤</span>
+  `;
 
-div.innerHTML=`<img src="${ch.logo}">
-<strong>${ch.name}</strong>
-<span class="fav-btn" style="color:${isFav?'red':'white'}">❤</span>`;
+  // --- CLICK SUR LA CHAINE ---
+  div.onclick = () => {
+    // --- PUB TOUTES LES 2 HEURES ---
+    let lastAdTime = localStorage.getItem("kianaLastAdTime");
+    let now = Date.now();
+    let twoHours = 2 * 60 * 60 * 1000;
+    if (!lastAdTime || (now - lastAdTime) > twoHours) {
+      try { window.open("https://www.effectivegatecpm.com/shypbmkwsu?key=5de73c15f801a01d2c0a830bd43966f7","_blank"); } catch(e){}
+      localStorage.setItem("kianaLastAdTime", now);
+    }
 
-/* 👉 CLICK */
+    // --- PLAYER ---
+    player.src({ src: ch.url, type:'application/vnd.apple.mpegurl' });
+    player.play();
 
-div.onclick=()=>{
+    // --- Overlay immédiat ---
+    overlayName.textContent = ch.name;
+    overlayFav.style.color = getFavs().some(f => f.url === ch.url) ? 'red' : 'white';
+    overlay.style.opacity = 1; // affiche l’overlay tout de suite
 
-/* PUB TOUTES LES 2 HEURES */
-let lastAdTime = localStorage.getItem("kianaLastAdTime");
-let now = Date.now();
-let twoHours = 2 * 60 * 60 * 1000;
+    // --- Clic cœur pour cette chaîne ---
+    overlayFav.onclick = (e) => {
+      e.stopPropagation();
+      toggleFavorite(ch, overlayFav);
+      overlayFav.style.color = getFavs().some(f => f.url === ch.url) ? 'red' : 'white';
+    };
+  };
 
-if(!lastAdTime || (now - lastAdTime) > twoHours){
-  try{
-    window.open("https://www.effectivegatecpm.com/shypbmkwsu?key=5de73c15f801a01d2c0a830bd43966f7","_blank");
-  }catch(e){}
+  // --- FAVORIS DANS LA LISTE ---
+  const favBtn = div.querySelector(".fav-btn");
+  if (favBtn) {
+    favBtn.onclick = (e) => {
+      e.stopPropagation();
+      toggleFavorite(ch, e.target);
+    };
+  }
 
-  localStorage.setItem("kianaLastAdTime", now);
-}
-
-/* PLAYER */
-player.src({
-  src: ch.url,
-  type:'application/vnd.apple.mpegurl'
-});
-
-player.play();
-
-};
-
-/* FAVORIS */
-const favBtn = div.querySelector(".fav-btn");
-if(favBtn){
-favBtn.onclick=(e)=>{
-e.stopPropagation();
-toggleFavorite(ch,e.target);
-};
-}
-
-list.appendChild(div);
+  list.appendChild(div);
 }
 
 async function loadM3U(urls){

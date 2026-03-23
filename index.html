@@ -431,22 +431,41 @@ setTimeout(()=>{
 }, 5000);
 
 var player = videojs('player',{
-autoplay:false,
-fluid:true,
-preload:"auto",
-html5:{
-vhs:{
-overrideNative:true,
-enableLowInitialPlaylist:true,
-smoothQualityChange:true,
-bandwidth:200000
-}
-}
+  autoplay:false,
+  fluid:true,
+  preload:"auto",
+  html5:{
+    vhs:{
+      overrideNative:true,
+      enableLowInitialPlaylist:true,
+      smoothQualityChange:true,
+
+      // 🔥 OPTIMISATION CONNEXION LENTE
+      maxBufferLength: 5,
+      maxMaxBufferLength: 10,
+      bandwidth: 100000,
+      limitRenditionByPlayerDimensions: true
+    }
+  }
 });
 
 player.httpSourceSelector();
+// 🔥 Pré-charge un flux pour accélérer le premier lancement
+player.src({
+  src: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+  type: "application/vnd.apple.mpegurl"
+});
+player.load();
 
 player.ready(function(){ player.volume(1); });
+// 🔥 auto-reload si erreur (UNE SEULE FOIS)
+player.on('error', () => {
+  overlayName.textContent = "Reconnexion...";
+  setTimeout(() => {
+    player.src(player.currentSource());
+    player.play();
+  }, 2000);
+});
 
 // --- Overlay HUD synchronisé ---
 const overlay = document.getElementById("channelOverlay");
@@ -552,7 +571,6 @@ window.addEventListener("DOMContentLoaded", () => {
 
   setLanguage(lang);
 });
-function setLanguage(l){ lang=l; }
 
 function getFavs(){ return JSON.parse(localStorage.getItem("kianaFavs")||"[]"); }
 function saveFavs(f){ localStorage.setItem("kianaFavs",JSON.stringify(f)); }
@@ -625,6 +643,9 @@ function createChannel(list, ch) {
 
   // --- CLICK SUR LA CHAINE ---
   div.onclick = () => {
+    // 🔥 feedback instantané
+overlayName.textContent = "Chargement...";
+overlay.style.opacity = 1;
     // --- PUB TOUTES LES 2 HEURES ---
     let lastAdTime = localStorage.getItem("kianaLastAdTime");
     let now = Date.now();
@@ -636,7 +657,16 @@ function createChannel(list, ch) {
 
     // --- PLAYER ---
     player.src({ src: ch.url, type:'application/vnd.apple.mpegurl' });
-    player.play();
+   player.play();
+
+// 🔥 démarre en qualité basse pour aller plus vite
+player.ready(() => {
+  const levels = player.qualityLevels();
+  if (levels && levels.length > 0) {
+    levels.selectedIndex = 0;
+  }
+});
+
 
     // --- Overlay immédiat ---
     overlayName.textContent = ch.name;
@@ -664,36 +694,72 @@ function createChannel(list, ch) {
 }
 
 async function loadM3U(urls){
-const arr=[];
-for(let u of urls){
-try{
-if(m3uCache[u]){ arr.push(...m3uCache[u]); continue; }
-const r=await fetch(u,{cache:"force-cache"});
-const t=await r.text();
-const lines=t.split('\n');
-const parsed=[];
-for(let i=0;i<lines.length;i++){
-if(lines[i].startsWith('#EXTINF:')){
-const nm=lines[i].split(',')[1]||"Unknown";
-const lgm=lines[i].match(/tvg-logo="([^"]+)"/);
-const lg=lgm?lgm[1]:"https://via.placeholder.com/80x50?text=TV";
-const url=lines[i+1];
-if(url && !url.startsWith('#')){
-const ch={name:nm,logo:lg,url};
-parsed.push(ch);
-allChannels.push(ch);
-}
-}
-}
-m3uCache[u]=parsed;
-arr.push(...parsed);
-}catch{}
-}
-return arr;
+  const arr = [];
+
+  for(let u of urls){
+    try{
+
+      const cacheKey = "m3u_" + btoa(u);
+
+      // 🔥 1. Charger depuis cache
+      let cached = localStorage.getItem(cacheKey);
+      if(cached){
+        const parsed = JSON.parse(cached);
+        m3uCache[u] = parsed;
+        arr.push(...parsed);
+        continue;
+      }
+
+      // 🔥 2. Charger depuis internet
+      if(m3uCache[u]){
+        arr.push(...m3uCache[u]);
+        continue;
+      }
+
+      const r = await fetch(u, {cache:"force-cache"});
+      const t = await r.text();
+      const lines = t.split('\n');
+
+      const parsed = [];
+
+      for(let i=0;i<lines.length;i++){
+        if(lines[i].startsWith('#EXTINF:')){
+          const nm = lines[i].split(',')[1] || "Unknown";
+          const lgm = lines[i].match(/tvg-logo="([^"]+)"/);
+          const lg = lgm ? lgm[1] : "https://via.placeholder.com/80x50?text=TV";
+          const url = lines[i+1];
+
+          if(url && !url.startsWith('#')){
+            const ch = {name:nm, logo:lg, url};
+            parsed.push(ch);
+            allChannels.push(ch);
+          }
+        }
+      }
+
+      // 🔥 3. Sauvegarde cache
+      localStorage.setItem(cacheKey, JSON.stringify(parsed));
+
+      m3uCache[u] = parsed;
+      arr.push(...parsed);
+
+    }catch(e){
+      console.log("Erreur M3U:", e);
+    }
+  }
+
+  return arr;
 }
 
 buildSidebar(categories);
-
+// 🔥 PRÉCHARGEMENT DES PLAYLISTS (accélère le premier clic)
+window.addEventListener("load", async () => {
+  for (let cat of categories) {
+    if (!cat.static && cat.m3u) {
+      loadM3U(cat.m3u);
+    }
+  }
+});
 function searchNow(){
 const q=document.getElementById('search').value.toLowerCase();
 const res=document.getElementById('searchResults');

@@ -471,7 +471,6 @@ var player = videojs('player',{
     }
   }
 });
-
 player.httpSourceSelector();
 // 🔥 Pré-charge un flux pour accélérer le premier lancement
 player.src({
@@ -633,32 +632,58 @@ const categories=[
 {name:"Séries",m3u:["https://iptv-org.github.io/iptv/categories/movies.m3u"]}
 ];
 
+// --------------------- BUILD SIDEBAR ---------------------
 function buildSidebar(cats){
-const sb=document.getElementById('sidebar');
-cats.forEach(cat=>{
-const btn=document.createElement('div'); btn.className='category-btn'; btn.innerText=cat.name; sb.appendChild(btn);
-const list=document.createElement('div'); list.className='channel-list'; sb.appendChild(list);
-let vis=false;
-btn.onclick=async()=>{
-if(vis){ list.style.display='none'; vis=false; return;}
-list.innerHTML='Chargement...'; list.style.display='flex';
-const channels=cat.static ? getFavs() : await loadM3U(cat.m3u);
-list.innerHTML='';
-let limit = 50;
-channels.slice(0, limit).forEach(ch => createChannel(list, ch));
+  const sb = document.getElementById('sidebar');
 
-// charger plus au scroll
-list.onscroll = () => {
-  if (list.scrollTop + list.clientHeight >= list.scrollHeight) {
-    let next = channels.slice(limit, limit + 50);
-    next.forEach(ch => createChannel(list, ch));
-    limit += 50;
-  }
-};
-if(channels.length===0) list.innerHTML="Aucune chaîne disponible";
-vis=true;
-};
-});
+  cats.forEach(cat => {
+    const btn = document.createElement('div');
+    btn.className = 'category-btn';
+    btn.innerText = cat.name;
+    sb.appendChild(btn);
+
+    const list = document.createElement('div');
+    list.className = 'channel-list';
+    sb.appendChild(list);
+
+    let vis = false;
+    btn.onclick = async () => {
+      if(vis){ list.style.display = 'none'; vis=false; return; }
+
+      list.innerHTML = 'Chargement...';
+      list.style.display = 'flex';
+
+      // 🔹 Charge les chaînes
+      const channels = cat.static ? getFavs() : await loadM3U(cat.m3u);
+      allChannels = [...new Set([...allChannels, ...channels])]; // ajoute à allChannels
+
+      if(channels.length === 0){ list.innerHTML = "Aucune chaîne disponible"; return; }
+
+      // 🔹 Affichage par batch pour fluidité
+      let index = 0;
+      const batchSize = 50;
+
+      function loadBatch(){
+        const batch = channels.slice(index, index + batchSize);
+        batch.forEach(ch => createChannel(list, ch));
+        index += batchSize;
+        if(index < channels.length){
+          setTimeout(loadBatch, 100); // pause pour rester fluide
+        }
+      }
+      list.innerHTML = '';
+      loadBatch();
+
+      // 🔹 Scroll infini
+      list.onscroll = () => {
+        if (list.scrollTop + list.clientHeight >= list.scrollHeight){
+          loadBatch();
+        }
+      };
+
+      vis = true;
+    };
+  });
 }
 
 function createChannel(list, ch) {
@@ -738,6 +763,7 @@ player.ready(() => {
   list.appendChild(div);
 }
 
+// --------------------- LOAD M3U ---------------------
 async function loadM3U(urls){
   const arr = [];
 
@@ -745,41 +771,27 @@ async function loadM3U(urls){
     try {
       const cacheKey = "m3u_" + btoa(u);
 
+      // 🔹 Vérifie cache local
       let cached = localStorage.getItem(cacheKey);
-      if (cached) {
+      if(cached){
         const parsed = JSON.parse(cached);
         arr.push(...parsed);
         continue;
       }
 
       const r = await fetch(u);
-      const reader = r.body.getReader();
-      const decoder = new TextDecoder("utf-8");
-
-      let text = "";
-      let done = false;
-
-      while (!done) {
-        const chunk = await reader.read();
-        done = chunk.done;
-        text += decoder.decode(chunk.value || new Uint8Array(), { stream: true });
-      }
-
+      const text = await r.text();
       const lines = text.split('\n');
       const parsed = [];
 
-      for (let i = 0; i < lines.length; i++) {
-        if (lines[i].startsWith('#EXTINF:')) {
+      for(let i = 0; i < lines.length; i++){
+        if(lines[i].startsWith('#EXTINF:')){
           const nm = lines[i].split(',')[1] || "Unknown";
           const lgm = lines[i].match(/tvg-logo="([^"]+)"/);
           const lg = lgm ? lgm[1] : "https://via.placeholder.com/80x50?text=TV";
           const url = lines[i+1];
-
-          if (url && !url.startsWith('#')) {
+          if(url && !url.startsWith('#')){
             parsed.push({ name: nm, logo: lg, url });
-
-            // 🔥 AFFICHAGE IMMÉDIAT (clé de vitesse)
-            createChannel(document.querySelector('.channel-list:last-child'), { name: nm, logo: lg, url });
           }
         }
       }
@@ -788,7 +800,7 @@ async function loadM3U(urls){
       arr.push(...parsed);
 
     } catch(e) {
-      console.log(e);
+      console.log("Erreur M3U:", e);
     }
   }
 

@@ -351,8 +351,31 @@ white-space:nowrap;
 </div>
 
 <header>
-📺 𝐊𝐈𝐀𝐍𝐀 𝐓𝐕
-<div class="menu-container">
+<div style="display:flex;align-items:center;gap:10px;">
+  <!-- LOGO SIMPLE KIANA TV -->
+  <svg width="60" height="60" viewBox="0 0 200 200" style="flex-shrink:0;">
+    <!-- Cercle principal -->
+    <circle cx="100" cy="100" r="90" fill="#ffffff" />
+
+    <!-- Écran stylisé -->
+    <rect x="50" y="60" width="100" height="70" rx="12" ry="12" fill="#000000" />
+
+    <!-- Bouton play -->
+    <polygon points="75,65 75,125 125,95" fill="#ffffff"/>
+  </svg>
+
+  <!-- TEXTE KIANA TV -->
+  <span style="
+    font-weight:bold;
+    font-size:22px;
+    color:#ffffff;
+  ">
+    KIANA TV
+  </span>
+</div>
+
+
+  <div class="menu-container">
 <div class="menu-btn" onclick="toggleDropdown()">☰ Menu</div>
 <div class="dropdown-menu" id="dropdownMenu">
 

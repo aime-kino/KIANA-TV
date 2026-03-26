@@ -433,17 +433,17 @@ setTimeout(()=>{
 var player = videojs('player',{
   autoplay:false,
   fluid:true,
-  preload:"auto",
+  preload:"metadata", // 🔥 plus rapide
   html5:{
     vhs:{
       overrideNative:true,
       enableLowInitialPlaylist:true,
       smoothQualityChange:true,
 
-      // 🔥 OPTIMISATION CONNEXION LENTE
-      maxBufferLength: 5,
-      maxMaxBufferLength: 10,
-      bandwidth: 100000,
+      // 🔥 ULTRA RAPIDE CONNEXION FAIBLE
+      bandwidth: 30000,
+      maxBufferLength: 2,
+      maxMaxBufferLength: 4,
       limitRenditionByPlayerDimensions: true
     }
   }
@@ -621,7 +621,17 @@ if(vis){ list.style.display='none'; vis=false; return;}
 list.innerHTML='Chargement...'; list.style.display='flex';
 const channels=cat.static ? getFavs() : await loadM3U(cat.m3u);
 list.innerHTML='';
-channels.forEach(ch=>{ createChannel(list,ch); });
+let limit = 50;
+channels.slice(0, limit).forEach(ch => createChannel(list, ch));
+
+// charger plus au scroll
+list.onscroll = () => {
+  if (list.scrollTop + list.clientHeight >= list.scrollHeight) {
+    let next = channels.slice(limit, limit + 50);
+    next.forEach(ch => createChannel(list, ch));
+    limit += 50;
+  }
+};
 if(channels.length===0) list.innerHTML="Aucune chaîne disponible";
 vis=true;
 };
@@ -646,18 +656,30 @@ function createChannel(list, ch) {
     // 🔥 feedback instantané
 overlayName.textContent = "Chargement...";
 overlay.style.opacity = 1;
-    // --- PUB TOUTES LES 2 HEURES ---
+    // --- PUB TOUTES LES 30 MINUTES ---
     let lastAdTime = localStorage.getItem("kianaLastAdTime");
-    let now = Date.now();
-    let twoHours = 2 * 60 * 60 * 1000;
-    if (!lastAdTime || (now - lastAdTime) > twoHours) {
-      try { window.open("https://www.effectivegatecpm.com/shypbmkwsu?key=5de73c15f801a01d2c0a830bd43966f7","_blank"); } catch(e){}
-      localStorage.setItem("kianaLastAdTime", now);
-    }
+let now = Date.now();
+let thirtyMinutes = 30 * 60 * 1000; // ✅ 30 minutes
+
+if (!lastAdTime || (now - lastAdTime) > thirtyMinutes) {
+  try {
+    window.open("https://www.effectivegatecpm.com/shypbmkwsu?key=5de73c15f801a01d2c0a830bd43966f7","_blank");
+  } catch(e){}
+  localStorage.setItem("kianaLastAdTime", now);
+}
 
     // --- PLAYER ---
-    player.src({ src: ch.url, type:'application/vnd.apple.mpegurl' });
-   player.play();
+    player.pause();
+player.reset();
+
+player.src({
+  src: ch.url,
+  type: 'application/vnd.apple.mpegurl'
+});
+
+player.ready(() => {
+  player.play().catch(()=>{});
+});
 
 // 🔥 démarre en qualité basse pour aller plus vite
 player.ready(() => {
@@ -696,55 +718,54 @@ player.ready(() => {
 async function loadM3U(urls){
   const arr = [];
 
-  for(let u of urls){
-    try{
-
+  for (let u of urls) {
+    try {
       const cacheKey = "m3u_" + btoa(u);
 
-      // 🔥 1. Charger depuis cache
       let cached = localStorage.getItem(cacheKey);
-      if(cached){
+      if (cached) {
         const parsed = JSON.parse(cached);
-        m3uCache[u] = parsed;
         arr.push(...parsed);
         continue;
       }
 
-      // 🔥 2. Charger depuis internet
-      if(m3uCache[u]){
-        arr.push(...m3uCache[u]);
-        continue;
+      const r = await fetch(u);
+      const reader = r.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+
+      let text = "";
+      let done = false;
+
+      while (!done) {
+        const chunk = await reader.read();
+        done = chunk.done;
+        text += decoder.decode(chunk.value || new Uint8Array(), { stream: true });
       }
 
-      const r = await fetch(u, {cache:"force-cache"});
-      const t = await r.text();
-      const lines = t.split('\n');
-
+      const lines = text.split('\n');
       const parsed = [];
 
-      for(let i=0;i<lines.length;i++){
-        if(lines[i].startsWith('#EXTINF:')){
+      for (let i = 0; i < lines.length; i++) {
+        if (lines[i].startsWith('#EXTINF:')) {
           const nm = lines[i].split(',')[1] || "Unknown";
           const lgm = lines[i].match(/tvg-logo="([^"]+)"/);
           const lg = lgm ? lgm[1] : "https://via.placeholder.com/80x50?text=TV";
           const url = lines[i+1];
 
-          if(url && !url.startsWith('#')){
-            const ch = {name:nm, logo:lg, url};
-            parsed.push(ch);
-            allChannels.push(ch);
+          if (url && !url.startsWith('#')) {
+            parsed.push({ name: nm, logo: lg, url });
+
+            // 🔥 AFFICHAGE IMMÉDIAT (clé de vitesse)
+            createChannel(document.querySelector('.channel-list:last-child'), { name: nm, logo: lg, url });
           }
         }
       }
 
-      // 🔥 3. Sauvegarde cache
       localStorage.setItem(cacheKey, JSON.stringify(parsed));
-
-      m3uCache[u] = parsed;
       arr.push(...parsed);
 
-    }catch(e){
-      console.log("Erreur M3U:", e);
+    } catch(e) {
+      console.log(e);
     }
   }
 
@@ -752,14 +773,7 @@ async function loadM3U(urls){
 }
 
 buildSidebar(categories);
-// 🔥 PRÉCHARGEMENT DES PLAYLISTS (accélère le premier clic)
-window.addEventListener("load", async () => {
-  for (let cat of categories) {
-    if (!cat.static && cat.m3u) {
-      loadM3U(cat.m3u);
-    }
-  }
-});
+
 function searchNow(){
 const q=document.getElementById('search').value.toLowerCase();
 const res=document.getElementById('searchResults');
@@ -772,3 +786,4 @@ results.forEach(ch=>{ createChannel(res,ch); });
 </script>
 </body>
 </html>
+

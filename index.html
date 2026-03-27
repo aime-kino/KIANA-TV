@@ -12,71 +12,89 @@
 
 <style>
 
-/* LOADER */
+
+/* LOADER KIANA STYLE NETFLIX */
 
 #loader{
-position:fixed;
-width:100%;
-height:100vh;
-background:white;
-display:flex;
-flex-direction:column;
-align-items:center;
-justify-content:center;
-z-index:9999;
-color:#ff0080;
-font-family:Arial;
+  position:fixed;
+  width:100%;
+  height:100vh;
+  background:black;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
 }
 
-.doll{
-display:flex;
-flex-direction:column;
-align-items:center;
-margin-bottom:10px;
+/* LOGO ROND */
+.logo-circle{
+  width:120px;
+  opacity:0;
+  transform:scale(0.5);
+  animation:logoAppear 0.8s ease forwards;
 }
 
-.head{
-width:70px;
-height:70px;
-background:#ffd1a4;
-border-radius:50%;
-position:relative;
+.logo-circle svg{
+  width:100%;
 }
 
-.head::before,
-.head::after{
-content:"";
-width:8px;
-height:8px;
-background:black;
-border-radius:50%;
-position:absolute;
-top:28px;
+/* TEXTE */
+.logo-text{
+  margin-top:20px;
 }
 
-.head::before{ left:18px; }
-.head::after{ right:18px; }
-
-.body-doll{
-width:80px;
-height:100px;
-background:#ff4da6;
-border-radius:40px;
-margin-top:5px;
+.logo-text span{
+  font-size:45px;
+  font-weight:bold;
+  color:white;
+  opacity:0;
+  transform:translateY(30px);
+  display:inline-block;
+  animation:letterAnim 0.4s forwards;
 }
 
-.loading span{
-display:inline-block;
-width:12px;
-height:12px;
-background:#ff0080;
-border-radius:50%;
-margin:5px;
-animation:bounce 1s infinite;
+/* DELAY LETTRES */
+.logo-text span:nth-child(1){animation-delay:1s;}
+.logo-text span:nth-child(2){animation-delay:1.2s;}
+.logo-text span:nth-child(3){animation-delay:1.4s;}
+.logo-text span:nth-child(4){animation-delay:1.6s;}
+.logo-text span:nth-child(5){animation-delay:1.8s;}
+.logo-text span:nth-child(7){animation-delay:2s;}
+.logo-text span:nth-child(8){animation-delay:2.2s;}
+
+/* ANIMATIONS */
+
+@keyframes logoAppear{
+  to{
+    opacity:1;
+    transform:scale(1);
+  }
 }
 
-.loading span:nth-child(2){animation-delay:0.2s;}
-.loading span:nth-child(3){animation-delay:0.4s;}
+@keyframes letterAnim{
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
+/* FINAL EFFECT */
+#loader{
+  animation:finalAnim 1.5s ease 3s forwards;
+}
+
+@keyframes finalAnim{
+  0%{}
+  50%{
+    transform:scale(1.1);
+    text-shadow:0 0 25px #ff0080, 0 0 50px #ff0080;
+  }
+  100%{
+    transform:rotate(360deg) scale(0.7);
+    opacity:0;
+  }
+}
 
 @keyframes bounce{
 0%{transform:translateY(0)}
@@ -310,16 +328,25 @@ white-space:nowrap;
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(0,0,0,0.6);
-  padding: 10px 20px;
-  border-radius: 12px;
+  
+  background: rgba(0,0,0,0.85); /* 🔥 plus foncé */
+  backdrop-filter: blur(8px);   /* 🔥 effet premium */
+  
+  padding: 12px 22px;
+  border-radius: 14px;
+  
   display: flex;
   align-items: center;
   gap: 15px;
+  
   color: white;
   font-size: clamp(14px, 1.2vw, 18px);
+  font-weight: bold;
+  
+  box-shadow: 0 0 15px rgba(0,0,0,0.8); /* 🔥 profondeur */
+  
   z-index: 10000;
-  pointer-events: none; /* overlay non cliquable sauf le cœur */
+  pointer-events: none;
   opacity: 0;
   transition: opacity 0.3s;
 }
@@ -335,19 +362,31 @@ white-space:nowrap;
 
 <body>
 
-<!-- LOADER -->
 
+<!-- NOUVEAU LOADER KIANA -->
 <div id="loader">
-<div class="doll">
-<div class="head"></div>
-<div class="body-doll"></div>
-</div>
-<h1>KIANA TV</h1>
-<div class="loading">
-<span></span>
-<span></span>
-<span></span>
-</div>
+
+  <!-- LOGO ROND -->
+  <div class="logo-circle">
+    <svg viewBox="0 0 200 200">
+      <circle cx="100" cy="100" r="90" fill="#ffffff"/>
+      <rect x="50" y="60" width="100" height="70" rx="12" fill="#000000"/>
+      <polygon points="75,65 75,125 125,95" fill="#ffffff"/>
+    </svg>
+  </div>
+
+  <!-- TEXTE ANIMÉ -->
+  <div class="logo-text">
+    <span>K</span>
+    <span>I</span>
+    <span>A</span>
+    <span>N</span>
+    <span>A</span>
+    <span>&nbsp;</span>
+    <span>T</span>
+    <span>V</span>
+  </div>
+
 </div>
 
 <header>
@@ -441,17 +480,21 @@ document.addEventListener("DOMContentLoaded", function(){
     const loader = document.getElementById("loader");
     if(loader){
       loader.style.opacity = "0";
+      loader.style.pointerEvents = "none"; // 🔥 débloque les clics
       loader.style.transition = "0.5s";
-      setTimeout(()=> loader.style.display="none", 500);
+      
+      setTimeout(()=> {
+        loader.style.display="none";
+      }, 500);
     }
-  }, 1500);
+  }, 4000);
 });
 
 /* sécurité anti-blocage */
 setTimeout(()=>{
   const loader = document.getElementById("loader");
   if(loader) loader.style.display = "none";
-}, 5000);
+}, 4500);
 
 var player = videojs('player',{
   autoplay:false,
@@ -462,6 +505,7 @@ var player = videojs('player',{
       overrideNative:true,
       enableLowInitialPlaylist:true,
       smoothQualityChange:true,
+      fastQualityChange: true,
 
       // 🔥 ULTRA RAPIDE CONNEXION FAIBLE
       bandwidth: 30000,
@@ -516,22 +560,20 @@ player.on('userinactive', () => { overlay.style.opacity = 0; });
 
 // Clic sur le cœur dans l'overlay
 overlayFav.onclick = (e) => {
-  e.stopPropagation(); // empêcher Video.js de capturer le clic
+  e.stopPropagation();
+
   const currentSrc = player.currentSrc();
   const currentCh = allChannels.find(c => c.url === currentSrc);
-  if(currentCh) toggleFavorite(currentCh, overlayFav);
-  updateOverlay(); // met à jour couleur du cœur immédiatement
+
+  if(!currentCh) return;
+
+  toggleFavorite(currentCh, overlayFav);
+
+  // 🔥 refresh couleur
+  overlayFav.style.color = getFavs().some(f => f.url === currentCh.url)
+    ? 'red'
+    : 'white';
 };
-
-var lang='fr';
-
-function toggleDropdown(){ const d=document.getElementById('dropdownMenu'); d.style.display=(d.style.display==='block'?'none':'block'); }
-function toggleSubMenu(id){
-  const el = document.getElementById(id);
-  const isHidden = window.getComputedStyle(el).display === "none";
-  el.style.display = isHidden ? "block" : "none";
-}
-
 /* OBJET DE TRADUCTION */
 const translations = {
   fr: { menu: "Menu", langues: "Langues", themes: "Thèmes", rechercher: "Rechercher une chaîne..." },
@@ -818,6 +860,15 @@ if(results.length===0){ res.innerHTML="<div style='padding:10px'>Aucune chaîne 
 results.forEach(ch=>{ createChannel(res,ch); });
 }
 
+function toggleDropdown(){
+  const menu = document.getElementById("dropdownMenu");
+  menu.style.display = (menu.style.display === "block") ? "none" : "block";
+}
+
+function toggleSubMenu(id){
+  const sub = document.getElementById(id);
+  sub.style.display = (sub.style.display === "block") ? "none" : "block";
+}
 </script>
 </body>
 </html>

@@ -357,6 +357,28 @@ white-space:nowrap;
   z-index: 10001; /* au-dessus du player pour que le clic fonctionne */
 }
 
+/* ===== NUMÉROTATION PREMIUM ===== */
+
+/* ===== NUMÉROTATION CLEAN ===== */
+
+.channel-number{
+  font-size:13px;
+  font-weight:600;
+
+  min-width:28px;
+  text-align:center;
+
+  opacity:0.6;
+
+  margin-right:10px;
+
+  flex-shrink:0;
+}
+
+/* léger effet au survol (propre) */
+.channel:hover .channel-number{
+  opacity:1;
+}
 </style>
 </head>
 
@@ -707,7 +729,7 @@ function buildSidebar(cats){
 
       function loadBatch(){
         const batch = channels.slice(index, index + batchSize);
-        batch.forEach(ch => createChannel(list, ch));
+       batch.forEach((ch, i) => createChannel(list, ch, index + i));
         index += batchSize;
         if(index < channels.length){
           setTimeout(loadBatch, 100); // pause pour rester fluide
@@ -728,7 +750,7 @@ function buildSidebar(cats){
   });
 }
 
-function createChannel(list, ch) {
+function createChannel(list, ch, index) {
   let favs = getFavs();
   let isFav = favs.find(x => x.url === ch.url);
 
@@ -736,10 +758,13 @@ function createChannel(list, ch) {
   const div = document.createElement('div');
   div.className = 'channel';
   div.innerHTML = `
-    <img src="${ch.logo}">
-    <strong>${ch.name}</strong>
-    <span class="fav-btn" style="color:${isFav ? 'red' : 'white'}">❤</span>
-  `;
+  <div class="channel-number">${index + 1}</div>
+
+  <img src="${ch.logo}">
+  <strong>${ch.name}</strong>
+
+  <span class="fav-btn" style="color:${isFav ? 'red' : 'white'}">❤</span>
+`;
 
   // --- CLICK SUR LA CHAINE ---
   div.onclick = () => {

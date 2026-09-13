@@ -27,7 +27,7 @@
   --border:rgba(255,255,255,0.08);
   --text:#F2F3F7;
   --text-muted:#8A93A6;
-  --accent:#3e2f31;
+  --accent:#E63950;
   --accent-dim:rgba(230,57,80,0.18);
   --radius:10px;
 }
@@ -313,27 +313,63 @@ header {
 
 #channelOverlay {
   position: absolute;
-  top: 18px;
+  top: 20px;
   left: 50%;
-  transform: translateX(-50%);
-  background: rgba(10,13,20,0.85);
-  backdrop-filter: blur(10px);
-  padding: 10px 18px;
-  border-radius: 10px;
-  border:1px solid var(--border);
+  transform: translate(-50%,-8px);
+  background: rgba(10,13,20,0.72);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  padding: 9px 14px 9px 16px;
+  border-radius: 999px;
+  border:1px solid rgba(255,255,255,0.10);
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   color: var(--text);
   font-size: 14px;
   font-weight: 500;
   z-index: 10000;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.3s;
+  box-shadow: 0 10px 26px rgba(0,0,0,0.45);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+#channelOverlay.visible{
+  opacity: 1;
+  transform: translate(-50%,0);
+}
+.overlay-live-dot{
+  width:8px; height:8px; border-radius:50%;
+  background:var(--accent);
+  flex-shrink:0;
+  animation: overlayPulse 1.8s infinite;
+}
+@keyframes overlayPulse{
+  0%{ box-shadow:0 0 0 0 rgba(230,57,80,0.55); }
+  70%{ box-shadow:0 0 0 8px rgba(230,57,80,0); }
+  100%{ box-shadow:0 0 0 0 rgba(230,57,80,0); }
+}
+#overlayName{
+  max-width:40vw;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.overlay-divider{
+  width:1px; height:16px;
+  background:rgba(255,255,255,0.14);
+  flex-shrink:0;
 }
 #channelOverlay span { pointer-events: auto; cursor: pointer; z-index: 10001; }
-#overlayFav{ color:var(--text-muted); font-size:17px; }
+#overlayFav{
+  color:var(--text-muted);
+  font-size:16px;
+  width:26px; height:26px;
+  display:flex; align-items:center; justify-content:center;
+  border-radius:50%;
+  transition:background 0.15s, color 0.15s;
+}
+#overlayFav:hover{ background:rgba(255,255,255,0.10); }
 
 @media (max-width: 900px) {
   .container { flex-direction: column; height: auto; overflow:auto; }
@@ -349,7 +385,7 @@ header {
 <div id="loader">
   <div class="logo-circle">
     <svg viewBox="0 0 200 200">
-      <circle cx="100" cy="100" r="90" fill="#E63950"/>
+      <circle cx="100" cy="100" r="90" style="fill:var(--accent)"/>
       <rect x="50" y="60" width="100" height="70" rx="12" fill="#0A0D14"/>
       <polygon points="75,65 75,125 125,95" fill="#ffffff"/>
     </svg>
@@ -362,7 +398,7 @@ header {
 <header>
   <div class="brand">
     <svg width="40" height="40" viewBox="0 0 200 200" style="flex-shrink:0;">
-      <circle cx="100" cy="100" r="90" fill="#E63950" />
+      <circle cx="100" cy="100" r="90" style="fill:var(--accent)" />
       <rect x="50" y="60" width="100" height="70" rx="12" ry="12" fill="#0A0D14" />
       <polygon points="75,65 75,125 125,95" fill="#ffffff"/>
     </svg>
@@ -407,7 +443,9 @@ header {
   <div class="player">
     <video id="player" class="video-js vjs-default-skin" controls autoplay playsinline></video>
     <div id="channelOverlay">
+      <span class="overlay-live-dot"></span>
       <span id="overlayName"></span>
+      <span class="overlay-divider"></span>
       <span id="overlayFav">❤</span>
     </div>
   </div>
@@ -438,37 +476,46 @@ setTimeout(()=>{
 /* ============================================================
    PLAYER
 ============================================================ */
-var player = videojs('player',{
-  autoplay:false,
-  fluid:true,
-  preload:"metadata",
-  html5:{
-    vhs:{
-      overrideNative:true,
-      enableLowInitialPlaylist:true,
-      smoothQualityChange:true,
-      fastQualityChange:true,
-      bandwidth:40000,          // démarrage prudent pour connexions faibles
-      maxBufferLength:4,
-      maxMaxBufferLength:10,
-      limitRenditionByPlayerDimensions:true
-    }
-  }
-});
-player.httpSourceSelector();
-player.ready(function(){ player.volume(1); });
-
+let player = null;
 let reconnecting = false;
-player.on('error', () => {
-  if(reconnecting) return;
-  reconnecting = true;
-  overlayName.textContent = "Reconnexion...";
-  setTimeout(() => {
-    player.src(player.currentSource());
-    player.play().catch(()=>{});
-    reconnecting = false;
-  }, 1500);
-});
+
+// Sur une connexion vraiment faible (2G/3G ou "économie de données"), on préfère
+// un tampon plus large et une estimation de débit plus prudente : le démarrage
+// est un peu moins instantané mais la lecture ne coupe/rebuffer plus sans arrêt.
+const netInfo = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+const isWeakConnection = !!(netInfo && (netInfo.saveData || ['slow-2g','2g','3g'].includes(netInfo.effectiveType)));
+const vhsConfig = isWeakConnection
+  ? { overrideNative:true, enableLowInitialPlaylist:true, smoothQualityChange:true, fastQualityChange:true, bandwidth:15000, maxBufferLength:12, maxMaxBufferLength:25, limitRenditionByPlayerDimensions:true }
+  : { overrideNative:true, enableLowInitialPlaylist:true, smoothQualityChange:true, fastQualityChange:true, bandwidth:40000, maxBufferLength:4, maxMaxBufferLength:10, limitRenditionByPlayerDimensions:true };
+
+try{
+  player = videojs('player',{
+    autoplay:false,
+    fluid:true,
+    preload:"metadata",
+    html5:{ vhs: vhsConfig }
+  });
+  player.httpSourceSelector();
+  player.ready(function(){ player.volume(1); });
+  player.on('error', () => {
+    if(reconnecting) return;
+    reconnecting = true;
+    overlayName.textContent = "Reconnexion...";
+    setTimeout(() => {
+      player.src(player.currentSource());
+      player.ready(() => {
+        const levels = player.qualityLevels ? player.qualityLevels() : null;
+        if(levels && levels.length){ for(let i=0;i<levels.length;i++) levels[i].enabled = (i===0); }
+        player.play().catch(()=>{});
+      });
+      reconnecting = false;
+    }, 1500);
+  });
+}catch(e){
+  // Si la librairie vidéo ne s'est pas chargée (CDN lent/bloqué), le reste du
+  // site (catégories, recherche, favoris) doit continuer à fonctionner.
+  console.log("Erreur lecteur vidéo:", e);
+}
 
 const overlay = document.getElementById("channelOverlay");
 const overlayName = document.getElementById("overlayName");
@@ -480,8 +527,10 @@ function refreshOverlayFav(){
   overlayFav.style.color = currentChannel && getFavs().some(f => f.url === currentChannel.url) ? '#E63950' : 'var(--text-muted)';
 }
 
-player.on('useractive', () => { overlay.style.opacity = 1; });
-player.on('userinactive', () => { overlay.style.opacity = 0; });
+if(player){
+  player.on('useractive', () => { overlay.classList.add('visible'); });
+  player.on('userinactive', () => { overlay.classList.remove('visible'); });
+}
 
 overlayFav.onclick = (e) => {
   e.stopPropagation();
@@ -614,30 +663,48 @@ function parseM3U(text){
   return parsed;
 }
 
-// Chargement 100% EN PARALLÈLE de toutes les playlists d'une catégorie,
-// avec cache mémoire + IndexedDB : c'est le principal gain de vitesse.
-async function loadM3U(urls){
-  const results = await Promise.all(urls.map(async (u) => {
-    if(memCache[u]) return memCache[u];
-    try{
-      const cached = await idbGet(u);
-      if(cached && (Date.now() - cached.ts) < CACHE_TTL){
-        memCache[u] = cached.channels;
-        return cached.channels;
-      }
-      const r = await fetch(u);
-      const text = await r.text();
-      const parsed = parseM3U(text);
-      memCache[u] = parsed;
-      idbSet(u, parsed);
-      return parsed;
-    }catch(e){
-      console.log("Erreur M3U:", u, e);
-      const cached = await idbGet(u); // reste utilisable hors-ligne si un cache existe
-      return cached ? cached.channels : [];
+// Un fetch sans limite de temps peut rester bloqué indéfiniment sur une
+// connexion faible ou une source injoignable — c'est ce qui provoquait
+// l'attente interminable. On coupe désormais après 15s maximum par source.
+function fetchWithTimeout(url, ms){
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  return fetch(url, { signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
+async function loadSource(u){
+  if(memCache[u]) return memCache[u];
+  const cached = await idbGet(u);
+  if(cached && cached.channels && cached.channels.length){
+    memCache[u] = cached.channels;
+    if((Date.now() - cached.ts) >= CACHE_TTL){
+      // Cache périmé mais existant : on l'affiche quand même tout de suite (instantané),
+      // et on le rafraîchit discrètement en arrière-plan pour la prochaine visite.
+      fetchWithTimeout(u, 15000).then(r => r.text()).then(text => {
+        const fresh = parseM3U(text);
+        if(fresh.length){ memCache[u] = fresh; idbSet(u, fresh); }
+      }).catch(()=>{});
     }
-  }));
-  return results.flat();
+    return cached.channels;
+  }
+  try{
+    const r = await fetchWithTimeout(u, 15000);
+    const text = await r.text();
+    const parsed = parseM3U(text);
+    memCache[u] = parsed;
+    idbSet(u, parsed);
+    return parsed;
+  }catch(e){
+    console.log("Erreur M3U:", u, e);
+    return [];
+  }
+}
+
+// Charge chaque playlist d'une catégorie INDÉPENDAMMENT et appelle onSource
+// dès qu'UNE playlist est prête, sans attendre les autres : les chaînes
+// apparaissent donc une à une, au fil de l'eau, au lieu d'un seul bloc final.
+function loadM3UProgressive(urls, onSource){
+  return Promise.all(urls.map(u => loadSource(u).then(channels => { onSource(channels); return channels; })));
 }
 
 function dedupeMerge(a, b){
@@ -694,7 +761,7 @@ const imgObserver = new IntersectionObserver((entries)=>{
 
 function playChannel(ch, el){
   overlayName.textContent = "Chargement...";
-  overlay.style.opacity = 1;
+  overlay.classList.add('visible');
 
   // Publicité (max 1 fois toutes les 30 min)
   const lastAdTime = Number(localStorage.getItem("kianaLastAdTime") || 0);
@@ -704,15 +771,17 @@ function playChannel(ch, el){
     localStorage.setItem("kianaLastAdTime", now);
   }
 
-  player.pause();
-  player.reset();
-  player.src({ src: ch.url, type: 'application/vnd.apple.mpegurl' });
-  player.ready(() => { player.play().catch(()=>{}); });
+  if(player){
+    player.pause();
+    player.reset();
+    player.src({ src: ch.url, type: 'application/vnd.apple.mpegurl' });
+    player.ready(() => { player.play().catch(()=>{}); });
+  }
 
   currentChannel = ch;
   overlayName.textContent = ch.name;
   refreshOverlayFav();
-  overlay.style.opacity = 1;
+  overlay.classList.add('visible');
 
   if(currentChannelEl) currentChannelEl.classList.remove('playing');
   if(el){ el.classList.add('playing'); currentChannelEl = el; }
@@ -802,11 +871,15 @@ function attachCategory(btn, list, cat){
 
     if(channels.length === 0){
       list.innerHTML = "<div class='loading-row'>Chargement…</div>";
-      channels = await loadM3U(cat.m3u);
-      allChannels = dedupeMerge(allChannels, channels);
-      list.innerHTML = '';
-      if(channels.length === 0){ list.innerHTML = "<div class='empty-row'>Aucune chaîne disponible</div>"; vis = true; return; }
-      renderNext();
+      let received = false;
+      await loadM3UProgressive(cat.m3u, (sourceChannels) => {
+        if(sourceChannels.length === 0) return;
+        if(!received){ list.innerHTML = ''; received = true; }
+        channels = channels.concat(sourceChannels);
+        allChannels = dedupeMerge(allChannels, sourceChannels);
+        renderNext();
+      });
+      if(!received){ list.innerHTML = "<div class='empty-row'>Aucune chaîne disponible</div>"; }
     }
     vis = true;
   };
@@ -829,6 +902,12 @@ function buildSidebar(cats){
 }
 
 buildSidebar(categories);
+
+// Affiche automatiquement les chaînes dès l'arrivée sur le site, sans clic requis.
+(function autoOpenDefaultCategory(){
+  const btns = document.querySelectorAll('.category-btn');
+  if(btns[1]) btns[1].click(); // "Toutes les chaînes"
+})();
 
 /* ============================================================
    RECHERCHE
